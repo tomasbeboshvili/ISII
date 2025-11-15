@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>BeerSP - Inicio</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+    <h1>BeerSP · Ciclo 1</h1>
+    <p>Selecciona el módulo que quieres probar. Cada vista utiliza el backend REST ya implementado.</p>
+</header>
+
+<nav class="nav-links">
+    <a href="auth.html">Autenticación</a>
+    <a href="profile.html">Perfil</a>
+    <a href="beers.html">Cervezas</a>
+    <a href="tastings.html">Degustaciones</a>
+    <a href="achievements.html">Menú & Galardones</a>
+</nav>
+
+<main>
+    <section>
+        <h2>¿Cómo funciona?</h2>
+        <ol>
+            <li>Registra y activa una cuenta desde la página de <strong>Autenticación</strong>.</li>
+            <li>Completa tus datos personales en la vista de <strong>Perfil</strong>.</li>
+            <li>Da de alta cervezas y valoraciones desde <strong>Cervezas</strong>.</li>
+            <li>Registra degustaciones y consulta históricos en <strong>Degustaciones</strong>.</li>
+            <li>Consulta el menú contextual y revisa/atribuye galardones en <strong>Menú & Galardones</strong>.</li>
+        </ol>
+        <p>El token de sesión se guarda automáticamente en el navegador para reutilizarlo entre páginas.</p>
+    </section>
+
+    <section>
+        <h2>Vertices técnicos</h2>
+        <ul>
+            <li>Frontend sin framework (HTML/CSS/JS) servido por Spring Boot.</li>
+            <li>Uso de <code>fetch</code> hacia los endpoints REST descritos en la documentación.</li>
+            <li>Token persistido en <code>localStorage</code> y encabezado <code>X-Auth-Token</code>.</li>
+            <li>Diseño simple pero funcional para cumplir con los entregables del primer ciclo.</li>
+        </ul>
+    </section>
+</main>
+
+<footer>
+    <p>BeerSP · Backend & Frontend Ciclo 1</p>
+</footer>
+</body>
+</html>

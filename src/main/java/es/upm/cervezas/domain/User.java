@@ -22,14 +22,34 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false, unique = true)
+    private String username;
+
     @Column(nullable = false)
     private String passwordHash;
 
     @Column(nullable = false)
     private String displayName;
 
+    private String firstName;
+
+    private String lastName;
+
+    private String photoUrl;
+
+    private String origin;
+
+    @Column(length = 500)
+    private String intro;
+
+    private String location;
+
+    private String gender;
+
     @Column(nullable = false)
     private LocalDate birthDate;
+
+    private LocalDate birthday;
 
     private String city;
 
@@ -52,6 +72,12 @@ public class User {
 
     private Instant passwordResetExpiresAt;
 
+    private Integer badgeLevel = 0;
+
+    private int gamificationPoints;
+
+    private Long currentAchievementId;
+
     @PrePersist
     public void onCreate() {
         Instant now = Instant.now();
@@ -60,6 +86,9 @@ public class User {
         if (activated) {
             this.activationToken = null;
             this.activationTokenCreatedAt = null;
+        }
+        if (this.badgeLevel == null) {
+            this.badgeLevel = 0;
         }
     }
 
@@ -84,6 +113,14 @@ public class User {
         this.email = email;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     public String getPasswordHash() {
         return passwordHash;
     }
@@ -100,12 +137,76 @@ public class User {
         this.displayName = displayName;
     }
 
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+
+    public String getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+
+    public String getIntro() {
+        return intro;
+    }
+
+    public void setIntro(String intro) {
+        this.intro = intro;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
     public LocalDate getBirthDate() {
         return birthDate;
     }
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public LocalDate getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(LocalDate birthday) {
+        this.birthday = birthday;
     }
 
     public String getCity() {
@@ -186,5 +287,29 @@ public class User {
 
     public void setPasswordResetExpiresAt(Instant passwordResetExpiresAt) {
         this.passwordResetExpiresAt = passwordResetExpiresAt;
+    }
+
+    public Integer getBadgeLevel() {
+        return badgeLevel;
+    }
+
+    public void setBadgeLevel(Integer badgeLevel) {
+        this.badgeLevel = badgeLevel;
+    }
+
+    public int getGamificationPoints() {
+        return gamificationPoints;
+    }
+
+    public void setGamificationPoints(int gamificationPoints) {
+        this.gamificationPoints = gamificationPoints;
+    }
+
+    public Long getCurrentAchievementId() {
+        return currentAchievementId;
+    }
+
+    public void setCurrentAchievementId(Long currentAchievementId) {
+        this.currentAchievementId = currentAchievementId;
     }
 }

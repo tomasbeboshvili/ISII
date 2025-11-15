@@ -12,6 +12,8 @@ import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,13 +23,18 @@ public class BeerService {
     private final BeerRepository beerRepository;
     private final BeerRatingRepository beerRatingRepository;
     private final UserProfileService userProfileService;
+    private final AchievementService achievementService;
+
+    private static final Logger log = LoggerFactory.getLogger(BeerService.class);
 
     public BeerService(BeerRepository beerRepository,
                        BeerRatingRepository beerRatingRepository,
-                       UserProfileService userProfileService) {
+                       UserProfileService userProfileService,
+                       AchievementService achievementService) {
         this.beerRepository = beerRepository;
         this.beerRatingRepository = beerRatingRepository;
         this.userProfileService = userProfileService;
+        this.achievementService = achievementService;
     }
 
     @Transactional
@@ -45,11 +52,15 @@ public class BeerService {
         beer.setCreatedAt(Instant.now());
 
         beerRepository.save(beer);
+        log.info("Cerveza {} creada por usuario {}", beer.getName(), user.getId());
+        user.setGamificationPoints(user.getGamificationPoints() + 15);
+        achievementService.refreshProgress(user);
         return toResponse(beer);
     }
 
     @Transactional(readOnly = true)
     public List<BeerResponse> getAllBeers() {
+        log.debug("Obteniendo listado completo de cervezas");
         return beerRepository.findAll()
                 .stream()
                 .map(this::toResponse)
@@ -60,6 +71,7 @@ public class BeerService {
     public BeerResponse getBeer(Long id) {
         Beer beer = beerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cerveza no encontrada"));
+        log.debug("Cerveza {} cargada", id);
         return toResponse(beer);
     }
 
@@ -79,6 +91,9 @@ public class BeerService {
         rating.setCreatedAt(Instant.now());
 
         beerRatingRepository.save(rating);
+        log.info("Valoración registrada para cerveza {} por usuario {}", beer.getId(), user.getId());
+        user.setGamificationPoints(user.getGamificationPoints() + 5);
+        achievementService.refreshProgress(user);
         return toResponse(beer);
     }
 

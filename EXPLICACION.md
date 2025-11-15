@@ -1,0 +1,197 @@
+# EXPLICACIÓN DETALLADA – BeerSP Backend (Ciclo 1)
+
+Este documento complementa el `README.md` con una descripción extensa del backend implementado para el Ciclo 1 del sistema BeerSP. Se cubren los requisitos seleccionados para este ciclo, su relación con el conteo de Puntos de Función (PF) y los componentes técnicos desarrollados en Spring Boot.
+
+---
+
+## 1. Alcance funcional del Ciclo 1
+
+El sistema BeerSP se planificó en dos ciclos, priorizando en C1 las funciones esenciales para operar la red social:
+
+| Requisito | Descripción | PF asociados |
+|-----------|-------------|--------------|
+| RQ1 | Verificación de edad mediante `AgeVerificationService`. | ILF Usuario (10 PF) |
+| RQ2-RQ5 | Registro, datos personales extendidos, creación y activación de cuenta. | EI Registro + EI Activación (7 PF) |
+| RQ6 | Inicio de sesión con tokens de sesión (`SessionToken`). | EQ Login (3 PF) |
+| RQ7 | Recuperación de contraseña con tokens de un solo uso. | EQ Recuperar (3 PF) |
+| RQ8 | Menú de interacción contextual (`MenuService`). | EO Feed Menú (4 PF) |
+| RQ21 | Registro de degustaciones. | ILF Degustación (10 PF) + EI Alta Degustación (6 PF) |
+| RQ22 | Consulta de info de cervezas. | ILF Cerveza (10 PF) |
+| RQ23 | Alta de cervezas. | EI Alta cerveza (4 PF) |
+| RQ24 | Valoración de cervezas. | EO Promedio cerveza (4 PF) |
+| Galardones | Gestión del ILF “Galardón” y asignación automática según gamificación. | ILF Galardones (10 PF) |
+
+Total PF del ciclo: aprox. 63 PF, alineados con el plan presentado (aunque 4 PF por galardones quedan parcialmente preparados para C2 al extender la librería de premios).
+
+---
+
+## 2. Modelos y persistencia
+
+### 2.1 Usuario (`User`)
+- Atributos: email, `username`, nombre, apellidos, foto, género, origen, intro, ubicación, ciudad, país, bio.
+- Datos de control: `activated`, tokens de activación/restablecimiento, timestamps.
+- Gamificación: `gamificationPoints`, `badgeLevel`, `currentAchievementId`, `birthday`.
+- JPA: tabla `users`, timestamps gestionados con `@PrePersist/@PreUpdate`.
+
+### 2.2 Cervezas (`Beer`)
+- Campos de ficha: nombre, estilo, cervecera, país de origen, ABV, IBU, descripción.
+- Relación con `User` (creador) y `BeerRating`.
+
+### 2.3 Degustaciones (`Tasting`)
+- Relación N:1 con usuario y cerveza.
+- Datos de cata: fecha, localización, notas, aroma/flavor/appearance.
+- Cada registro suma puntos al usuario.
+
+### 2.4 Valoraciones (`BeerRating`)
+- Score 1-5 y comentario opcional.
+- Restricción única por usuario+cerveza.
+
+### 2.5 Galardones (`Achievement`)
+- Nombre, temática, imagen, nivel, criterio y umbral de puntos.
+- Repositorio `AchievementRepository` permite determinar el galardón que corresponde a un usuario según sus puntos (`findFirstByThresholdLessThanEqualOrderByThresholdDesc`).
+
+### 2.6 Tokens de sesión (`SessionToken`)
+- Gestionan las sesiones “stateless” mediante el header `X-Auth-Token`.
+
+---
+
+## 3. Servicios y lógica de negocio
+
+### 3.1 Autenticación (`AuthService`)
+1. **Registro**: valida email y username únicos, verifica edad, persiste al usuario con token de activación y campos extendidos.
+2. **Activación**: confirma token y marca `activated=true`.
+3. **Login**: valida credenciales, emite `SessionToken` con duración de 12h.
+4. **Recuperación**: genera token temporal de 30 min para restablecer contraseña.
+5. **Reset**: comprueba token y actualiza la contraseña.
+
+### 3.2 TokenAuthenticationService
+- Resuelve usuarios a partir del token, verificando que la sesión esté activa y sin expirar.
+
+### 3.3 UserProfileService
+- `requireUser`: centraliza el control de acceso.
+- `getProfile`/`updateProfile`: exponen todos los atributos relevantes del ILF Usuario, incluyendo los campos de gamificación y galardón.
+
+### 3.4 MenuService
+- Construye el menú dinámico (RQ8) en función del estado del usuario (activado, perfil completo).
+
+### 3.5 BeerService
+- Alta de cervezas: suma 15 puntos de gamificación y dispara la evaluación de galardón.
+- Listado/detalle: aporta promedio de valoraciones (`BeerRatingRepository`).
+- Valoraciones: crea/actualiza la puntuación del usuario, suma 5 puntos.
+
+### 3.6 TastingService
+- Registro de degustaciones: crea la entidad y suma 10 puntos al usuario.
+- Consultas: catas propias (`/me`) y por cerveza.
+
+### 3.7 AchievementService
+- CRUD básico de galardones y asignación manual (`/claim`).
+- `refreshProgress(User)`: se ejecuta tras altas/valoraciones/degustaciones para asignar automáticamente el galardón cuyo umbral se cumple; persiste el cambio en `User`.
+
+---
+
+## 4. API REST
+
+| Recurso | Endpoints | Notas |
+|---------|-----------|-------|
+| Autenticación | `POST /api/auth/register`, `/activate`, `/login`, `/logout`, `/password/recover`, `/password/reset` | Usa DTOs validados con `jakarta.validation`. |
+| Perfil | `GET /api/users/me`, `PUT /api/users/me` | Requiere `X-Auth-Token`. |
+| Cervezas | `GET /api/beers`, `GET /api/beers/{id}`, `POST /api/beers`, `POST /api/beers/rate` | Las operaciones de escritura dependen de token. |
+| Degustaciones | `POST /api/tastings`, `GET /api/tastings/me`, `GET /api/tastings/beer/{beerId}` | Registro incrementa puntos. |
+| Menú | `GET /api/menu` | Puede recibir token opcional. |
+| Galardones | `GET /api/achievements`, `POST /api/achievements`, `POST /api/achievements/{id}/claim` | `POST` pensado para admins; `claim` requiere token. |
+
+Todas las respuestas de error se canalizan mediante `GlobalExceptionHandler`, devolviendo mensajes en castellano para errores de validación, faltas de autorización o entidades inexistentes.
+
+---
+
+## 5. Gamificación y galardones
+
+1. **Puntos**:
+   - Alta de cerveza: +15.
+   - Degustación: +10.
+   - Valoración: +5.
+2. **Asignación automática**: tras cada acción se invoca `AchievementService.refreshProgress` para consultar el galardón de mayor umbral <= puntos actuales.
+3. **Asignación manual**: `POST /api/achievements/{id}/claim` permite aplicar un galardón concreto (por ejemplo, para homologar logros anteriores).
+
+Estos procesos mantienen sincronizados los campos `gamificationPoints`, `badgeLevel` e `currentAchievementId` del usuario.
+
+---
+
+## 6. Configuración técnica
+
+- **Stack**: Spring Boot 3.5, Spring Data JPA, H2 (memoria), Spring Web, Validation, Security Crypto, Spring Session JDBC.
+- **Datasource**: H2 en memoria (`jdbc:h2:mem:cervezasdb`) con consola en `/h2-console`.
+- **Security**: No se ha configurado Spring Security completo; el control se realiza con tokens personalizados.
+- **Construcción**: Maven Wrapper (`./mvnw`). En este entorno el wrapper no puede descargarse por restricciones de red, por lo que las pruebas deben ejecutarse cuando se disponga de conexión o caché local.
+
+---
+
+## 7. Pruebas unitarias
+
+Ubicadas en `src/test/java/es/upm/cervezas/service/`:
+
+- `AgeVerificationServiceTest`
+- `AuthServiceTest`
+- `TokenAuthenticationServiceTest`
+- `UserProfileServiceTest`
+- `MenuServiceTest`
+- `BeerServiceTest`
+- `TastingServiceTest`
+- `AchievementServiceTest`
+
+Cubren flujos felices y errores (ej. usuario no activado, token caducado, asignaciones de galardones). Para ejecutarlas:
+
+```bash
+MAVEN_USER_HOME=./.m2 ./mvnw test
+```
+
+> Nota: necesita acceso a Maven Central para descargar el wrapper y dependencias. Si el entorno está restringido se debe usar una caché previa.
+
+---
+
+## 8. Flujo de uso recomendado
+
+1. **Registro** → se valida edad y unicidad de email/username; se retorna token de activación.
+2. **Activación** → `POST /api/auth/activate` con token.
+3. **Login** → genera `X-Auth-Token`.
+4. **Completar perfil** → `PUT /api/users/me`.
+5. **Alta de cervezas** y **degustaciones** → incrementan puntos de gamificación.
+6. **Valoraciones** → reflejan promedios públicos y también suman puntos.
+7. **Consulta de galardones / claim** → permite ver el progreso y aplicar logros específicos.
+
+Este flujo satisface la funcionalidad mínima del ciclo 1 descrita en el análisis PF, dejando para el ciclo 2 las funciones sociales (amistades, comentarios, locales, feeds avanzados, etc.).
+
+---
+
+## 9. Próximos pasos sugeridos (Ciclo 2)
+
+A partir del backlog inicial, las ampliaciones más prioritarias son:
+
+- ILF Amistad / Solicitudes y sus EI/EQ asociados.
+- ILF Local y funciones relacionadas (alta, “me gusta”, mapa con Google Maps API).
+- Comentarios y feed de actividad (ILF Comentario + EO Feed).
+- Métricas KPI (resumen de perfil, top 3 favoritas, actividad de amigos).
+
+La arquitectura y los servicios presentes ya contemplan parte de estas extensiones (ej. campos de usuario para gamificación), por lo que su incorporación futura será incremental.
+
+---
+
+## 10. Resumen
+
+El backend de BeerSP Ciclo 1 implementa los requisitos esenciales de autenticación, gestión de perfil, catálogo de cervezas, degustaciones y gamificación mediante galardones. Se respeta el conteo de PF planificado, y la base técnica (JPA, DTOs validados, pruebas unitarias) permite evolucionar el sistema en ciclos posteriores sin reescrituras significativas.
+
+---
+
+## 11. Frontend demostrativo
+
+Para facilitar la entrega universitaria se añadió un frontend estático servido por Spring Boot:
+
+- `index.html`: landing con instrucciones y enlaces.
+- `auth.html`: registro, activación, login y recuperación (RQ1-RQ7).
+- `profile.html`: consulta/edición del ILF Usuario.
+- `beers.html`: alta/listado/valoración de cervezas (RQ22-RQ24).
+- `tastings.html`: registro y consulta de degustaciones (RQ21).
+- `achievements.html`: menú contextual (RQ8) y galardones.
+- `app.js`: lógica compartida; activa solo los formularios presentes en cada página y reutiliza el token entre vistas.
+
+El objetivo es didáctico: no se emplean frameworks, pero cubre todas las operaciones del ciclo con un flujo claro para la defensa/práctica.

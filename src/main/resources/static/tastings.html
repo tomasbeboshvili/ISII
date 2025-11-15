@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>BeerSP - Degustaciones</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+    <h1>Degustaciones</h1>
+    <p>Registra nuevas catas, consulta las propias y explora por cerveza.</p>
+</header>
+
+<nav class="nav-links">
+    <a href="index.html">Inicio</a>
+    <a href="auth.html">Autenticación</a>
+    <a href="profile.html">Perfil</a>
+    <a href="beers.html">Cervezas</a>
+    <a href="achievements.html">Menú & Galardones</a>
+</nav>
+
+<div class="token-box">
+    <strong>Token actual:</strong>
+    <span id="tokenLabel">sin sesión</span>
+    <button type="button" id="logoutBtn">Cerrar sesión</button>
+</div>
+
+<main>
+    <section>
+        <div class="grid three-columns">
+            <form id="tastingForm">
+                <h2>Nueva degustación</h2>
+                <label>ID Cerveza <input type="number" name="beerId" required></label>
+                <label>Fecha y hora <input type="datetime-local" name="tastingDate" required></label>
+                <label>Ubicación <input type="text" name="location"></label>
+                <label>Notas <textarea name="notes"></textarea></label>
+                <label>Aroma (1-5) <input type="number" name="aromaScore" min="1" max="5" required></label>
+                <label>Sabor (1-5) <input type="number" name="flavorScore" min="1" max="5" required></label>
+                <label>Apariencia (1-5) <input type="number" name="appearanceScore" min="1" max="5" required></label>
+                <button type="submit">Registrar</button>
+            </form>
+
+            <div>
+                <h2>Mis degustaciones</h2>
+                <button id="myTastingsBtn">Actualizar</button>
+                <ul id="myTastingsList" class="panel list"></ul>
+            </div>
+
+            <div>
+                <h2>Por cerveza</h2>
+                <label>ID Cerveza
+                    <input type="number" id="beerTastingsId">
+                </label>
+                <button id="beerTastingsBtn">Consultar</button>
+                <ul id="beerTastingsList" class="panel list"></ul>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p>BeerSP · Ciclo 1</p>
+    <div id="messages"></div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

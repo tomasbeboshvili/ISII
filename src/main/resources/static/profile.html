@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>BeerSP - Perfil</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+    <h1>Perfil de usuario · BeerSP</h1>
+    <p>Consulta y actualiza los datos personales definidos en el ILF Usuario.</p>
+</header>
+
+<nav class="nav-links">
+    <a href="index.html">Inicio</a>
+    <a href="auth.html">Autenticación</a>
+    <a href="beers.html">Cervezas</a>
+    <a href="tastings.html">Degustaciones</a>
+    <a href="achievements.html">Menú & Galardones</a>
+</nav>
+
+<div class="token-box">
+    <strong>Token actual:</strong>
+    <span id="tokenLabel">sin sesión</span>
+    <button type="button" id="logoutBtn">Cerrar sesión</button>
+</div>
+
+<main>
+    <section>
+        <div class="grid two-columns">
+            <div>
+                <h2>Datos almacenados</h2>
+                <button id="loadProfileBtn">Cargar perfil</button>
+                <div id="profileCard" class="profile-card hidden">
+                    <img id="profilePhoto" alt="Foto de perfil">
+                    <h3 id="profileDisplayName"></h3>
+                    <p id="profileUsername" class="muted"></p>
+                    <p id="profileEmail" class="muted"></p>
+                    <p id="profileIntro"></p>
+                    <ul>
+                        <li><strong>Nombre:</strong> <span id="profileFirstName"></span></li>
+                        <li><strong>Apellidos:</strong> <span id="profileLastName"></span></li>
+                        <li><strong>Ciudad:</strong> <span id="profileCity"></span></li>
+                        <li><strong>País:</strong> <span id="profileCountry"></span></li>
+                        <li><strong>Ubicación:</strong> <span id="profileLocation"></span></li>
+                        <li><strong>Género:</strong> <span id="profileGender"></span></li>
+                        <li><strong>Cumpleaños:</strong> <span id="profileBirthday"></span></li>
+                        <li><strong>Bio:</strong> <span id="profileBio"></span></li>
+                        <li><strong>Puntos:</strong> <span id="profilePoints"></span></li>
+                        <li><strong>Galardón actual:</strong> <span id="profileAchievement"></span></li>
+                    </ul>
+                </div>
+                <p class="muted">Usa el botón para traer los datos actuales.</p>
+            </div>
+            <div>
+                <button id="toggleProfileFormBtn" class="link-btn">Editar perfil</button>
+                <form id="profileForm" class="hidden">
+                    <h2>Actualizar datos</h2>
+                    <label>Nombre visible <input type="text" name="displayName"></label>
+                    <label>Nombre <input type="text" name="firstName"></label>
+                    <label>Apellidos <input type="text" name="lastName"></label>
+                    <label>Foto (URL) <input type="text" name="photoUrl"></label>
+                    <label>Origen <input type="text" name="origin"></label>
+                    <label>Intro <textarea name="intro"></textarea></label>
+                    <label>Ubicación <input type="text" name="location"></label>
+                    <label>Género <input type="text" name="gender"></label>
+                    <label>Cumpleaños <input type="date" name="birthday"></label>
+                    <label>Ciudad <input type="text" name="city"></label>
+                    <label>País <input type="text" name="country"></label>
+                    <label>Bio <textarea name="bio"></textarea></label>
+                    <button type="submit">Guardar cambios</button>
+                </form>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p>BeerSP · Ciclo 1</p>
+    <div id="messages"></div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

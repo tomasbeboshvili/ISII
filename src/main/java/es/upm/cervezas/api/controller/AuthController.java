@@ -11,6 +11,8 @@ import es.upm.cervezas.api.dto.RegistrationRequest;
 import es.upm.cervezas.api.dto.RegistrationResponse;
 import es.upm.cervezas.service.AuthService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     private final AuthService authService;
 
     public AuthController(AuthService authService) {
@@ -30,32 +34,38 @@ public class AuthController {
 
     @PostMapping("/register")
     public RegistrationResponse register(@Valid @RequestBody RegistrationRequest request) {
+        log.info("Nueva solicitud de registro para {}", request.email());
         return authService.register(request);
     }
 
     @PostMapping("/activate")
     public ActivationResponse activate(@Valid @RequestBody ActivationRequest request) {
+        log.info("Solicitud de activación recibida");
         return authService.activate(request);
     }
 
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+        log.info("Intento de login para {}", request.email());
         return authService.login(request);
     }
 
     @PostMapping("/logout")
     public ActivationResponse logout(@RequestHeader(name = "X-Auth-Token", required = false) String token) {
+        log.info("Logout solicitado");
         authService.logout(token);
         return new ActivationResponse("Sesión cerrada");
     }
 
     @PostMapping("/password/recover")
     public PasswordRecoveryResponse recover(@Valid @RequestBody PasswordRecoveryRequest request) {
+        log.info("Inicio de recuperación para {}", request.email());
         return authService.startPasswordRecovery(request);
     }
 
     @PostMapping("/password/reset")
     public ActivationResponse reset(@Valid @RequestBody PasswordResetRequest request) {
+        log.info("Solicitud de reseteo de contraseña recibida");
         return authService.resetPassword(request);
     }
 }

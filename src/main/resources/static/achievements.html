@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>BeerSP - Menú y Galardones</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+    <h1>Menú contextual y galardones</h1>
+    <p>Consulta las acciones disponibles (RQ8) y gestiona los logros del usuario.</p>
+</header>
+
+<nav class="nav-links">
+    <a href="index.html">Inicio</a>
+    <a href="auth.html">Autenticación</a>
+    <a href="profile.html">Perfil</a>
+    <a href="beers.html">Cervezas</a>
+    <a href="tastings.html">Degustaciones</a>
+</nav>
+
+<div class="token-box">
+    <strong>Token actual:</strong>
+    <span id="tokenLabel">sin sesión</span>
+    <button type="button" id="logoutBtn">Cerrar sesión</button>
+</div>
+
+<main>
+    <section class="grid two-columns">
+        <div>
+            <h2>Menú contextual</h2>
+            <button id="menuBtn">Consultar menú</button>
+            <pre id="menuInfo" class="panel"></pre>
+        </div>
+        <div>
+            <h2>Galardones</h2>
+            <button id="listAchievementsBtn">Listar galardones</button>
+            <ul id="achievementList" class="panel list"></ul>
+            <label>ID galardón
+                <input type="number" id="claimAchievementId">
+            </label>
+            <button id="claimAchievementBtn">Asignar a mi perfil</button>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p>BeerSP · Ciclo 1</p>
+    <div id="messages"></div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -17,12 +17,16 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private static final Duration SESSION_DURATION = Duration.ofHours(12);
     private static final Duration RESET_DURATION = Duration.ofMinutes(30);
@@ -47,14 +51,27 @@ public class AuthService {
         if (userRepository.existsByEmailIgnoreCase(request.email())) {
             throw new IllegalArgumentException("Ya existe una cuenta con este email");
         }
+        if (userRepository.existsByUsernameIgnoreCase(request.username())) {
+            throw new IllegalArgumentException("El nombre de usuario ya está en uso");
+        }
 
+        log.info("Registrando nuevo usuario {}", request.email());
         ageVerificationService.verifyOrThrow(request.birthDate());
 
         User user = new User();
         user.setEmail(request.email().toLowerCase());
+        user.setUsername(request.username().toLowerCase());
         user.setDisplayName(request.displayName());
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+        user.setPhotoUrl(request.photoUrl());
+        user.setOrigin(request.origin());
+        user.setIntro(request.intro());
+        user.setLocation(request.location());
+        user.setGender(request.gender());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setBirthDate(request.birthDate());
+        user.setBirthday(request.birthday() != null ? request.birthday() : request.birthDate());
         user.setCity(request.city());
         user.setCountry(request.country());
         user.setBio(request.bio());
@@ -63,6 +80,7 @@ public class AuthService {
         user.setActivationTokenCreatedAt(Instant.now());
 
         userRepository.save(user);
+        log.debug("Usuario {} registrado pendiente de activación", user.getId());
 
         return new RegistrationResponse(
                 "Registro exitoso. Completa la activación desde el email simulado",
@@ -79,6 +97,7 @@ public class AuthService {
         user.setActivationToken(null);
         user.setActivationTokenCreatedAt(null);
 
+        log.info("Usuario {} activado correctamente", user.getId());
         return new ActivationResponse("Cuenta activada correctamente");
     }
 
@@ -104,6 +123,7 @@ public class AuthService {
 
         sessionTokenRepository.save(sessionToken);
 
+        log.info("Inicio de sesión exitoso para {}", user.getEmail());
         return new LoginResponse(sessionToken.getToken(), "Inicio de sesión correcto");
     }
 
@@ -113,13 +133,17 @@ public class AuthService {
             return;
         }
         Optional<SessionToken> maybeToken = sessionTokenRepository.findByTokenAndActiveTrue(token);
-        maybeToken.ifPresent(sessionToken -> sessionToken.setActive(false));
+        maybeToken.ifPresent(sessionToken -> {
+            sessionToken.setActive(false);
+            log.info("Token {} invalidado", sessionToken.getToken());
+        });
     }
 
     @Transactional
     public PasswordRecoveryResponse startPasswordRecovery(PasswordRecoveryRequest request) {
         Optional<User> maybeUser = userRepository.findByEmailIgnoreCase(request.email());
         if (maybeUser.isEmpty()) {
+            log.warn("Recuperación solicitada para email inexistente {}", request.email());
             return new PasswordRecoveryResponse("Si el email existe, recibirás instrucciones", null);
         }
 
@@ -146,6 +170,7 @@ public class AuthService {
         user.setPasswordResetToken(null);
         user.setPasswordResetExpiresAt(null);
 
+        log.info("Contraseña actualizada para usuario {}", user.getId());
         return new ActivationResponse("Contraseña actualizada");
     }
 }

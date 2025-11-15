@@ -8,9 +8,18 @@ import java.time.LocalDate;
 
 public record RegistrationRequest(
         @NotBlank @Email String email,
+        @NotBlank String username,
         @NotBlank String displayName,
+        String firstName,
+        String lastName,
+        String photoUrl,
+        String origin,
+        String intro,
+        String location,
+        String gender,
         @NotBlank String password,
         @NotNull @Past LocalDate birthDate,
+        LocalDate birthday,
         String city,
         String country,
         String bio

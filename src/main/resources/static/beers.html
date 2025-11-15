@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>BeerSP - Cervezas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+    <h1>Gestión de cervezas</h1>
+    <p>Da de alta cervezas, consulta el catálogo y registra valoraciones.</p>
+</header>
+
+<nav class="nav-links">
+    <a href="index.html">Inicio</a>
+    <a href="auth.html">Autenticación</a>
+    <a href="profile.html">Perfil</a>
+    <a href="tastings.html">Degustaciones</a>
+    <a href="achievements.html">Menú & Galardones</a>
+</nav>
+
+<div class="token-box">
+    <strong>Token actual:</strong>
+    <span id="tokenLabel">sin sesión</span>
+    <button type="button" id="logoutBtn">Cerrar sesión</button>
+</div>
+
+<main>
+    <section>
+        <div class="grid three-columns">
+            <form id="beerForm">
+                <h2>Alta de cerveza</h2>
+                <label>Nombre <input type="text" name="name" required></label>
+                <label>Estilo <input type="text" name="style" required></label>
+                <label>Cervecera <input type="text" name="brewery"></label>
+                <label>País origen <input type="text" name="originCountry"></label>
+                <label>ABV (%)<input type="number" step="0.1" name="abv" min="0" value="5" required></label>
+                <label>IBU <input type="number" name="ibu"></label>
+                <label>Descripción <textarea name="description"></textarea></label>
+                <button type="submit">Crear cerveza</button>
+            </form>
+
+            <div>
+                <h2>Listado de cervezas</h2>
+                <button id="listBeersBtn">Actualizar</button>
+                <ul id="beerList" class="panel list"></ul>
+            </div>
+
+            <form id="ratingForm">
+                <h2>Valorar cerveza</h2>
+                <label>ID Cerveza <input type="number" name="beerId" required></label>
+                <label>Puntuación (1-5) <input type="number" name="score" min="1" max="5" required></label>
+                <label>Comentario <textarea name="comment"></textarea></label>
+                <button type="submit">Enviar valoración</button>
+            </form>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p>BeerSP · Ciclo 1</p>
+    <div id="messages"></div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
