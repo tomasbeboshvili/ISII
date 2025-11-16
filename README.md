@@ -7,7 +7,7 @@ Backend Spring Boot que cubre los requisitos funcionales del Ciclo 1 (RQ1-RQ8, R
 | RQ | Descripción | Endpoint/Servicio |
 |----|-------------|-------------------|
 | RQ1 | Verificar edad | `AgeVerificationService` durante registro |
-| RQ2-RQ5 | Registro, datos personales, creación y activación de cuenta | `POST /api/auth/register`, `POST /api/auth/activate` |
+| RQ2-RQ5 | Registro y datos personales (activación automática) | `POST /api/auth/register` |
 | RQ6 | Iniciar sesión | `POST /api/auth/login` (token de sesión `X-Auth-Token`) |
 | RQ7 | Recuperar contraseña | `POST /api/auth/password/recover`, `POST /api/auth/password/reset` |
 | RQ8 | Menú de interacción | `GET /api/menu` |
@@ -29,12 +29,12 @@ Backend Spring Boot que cubre los requisitos funcionales del Ciclo 1 (RQ1-RQ8, R
 ## Servicios expuestos
 
 ### Autenticación (`/api/auth`)
-- `POST /register`: crea cuenta (verifica edad y unicidad de email).
-- `POST /activate`: activa mediante token simulado.
-- `POST /login`: devuelve token de sesión.
+- `POST /register`: crea cuenta (verifica edad y unicidad de email) y envía un código de activación al correo simulado.
+- `POST /login`: devuelve token de sesión y lo persiste en `session_tokens`.
 - `POST /logout`: invalida token.
-- `POST /password/recover`: inicia flujo de recuperación (token simulado).
-- `POST /password/reset`: restablece contraseña con token vigente.
+- `POST /activate`: activa la cuenta usando el código recibido.
+- `POST /password/recover`: genera un código único y lo envía por correo simulado.
+- `POST /password/reset`: restablece contraseña introduciendo el código recibido.
 
 ### Usuario (`/api/users/me`)
 - `GET`: obtiene perfil completo.
@@ -44,7 +44,7 @@ Backend Spring Boot que cubre los requisitos funcionales del Ciclo 1 (RQ1-RQ8, R
 - `GET`: lista todas con rating medio y nº de valoraciones.
 - `GET /{id}`: detalle.
 - `POST`: alta (requiere token).
-- `POST /rate`: crea/actualiza valoración del usuario.
+- `POST /rate`: crea/actualiza valoración del usuario (puntuaciones 1-10, media en `double`).
 
 ### Degustaciones (`/api/tastings`)
 - `POST`: registra degustación de una cerveza.
@@ -55,6 +55,7 @@ Backend Spring Boot que cubre los requisitos funcionales del Ciclo 1 (RQ1-RQ8, R
 - `GET`: consulta la librería de galardones disponibles.
 - `POST`: crea nuevos galardones (para escenarios administrativos).
 - `POST /{id}/claim`: permite que un usuario autenticado asigne un galardón concreto a su perfil.
+- `GET /user`: devuelve los galardones que el usuario ya ha desbloqueado (automáticos por degustaciones/valoraciones/altas o manuales).
 
 Cada degustación, valoración o alta de cerveza suma puntos de gamificación; la lógica de `AchievementService` asigna automáticamente el galardón cuyo umbral se cumpla tras cada acción, manteniendo sincronizados `id_galardón_actual`, `nivel_galardón` y `puntos_gamificación` del usuario.
 
@@ -64,7 +65,7 @@ Cada degustación, valoración o alta de cerveza suma puntos de gamificación; l
 ./mvnw spring-boot:run
 ```
 
-> El proyecto usa H2 en memoria (`spring.jpa.hibernate.ddl-auto=update`) y expone consola en `/h2-console`.
+> El proyecto usa H2 en fichero (`jdbc:h2:file:./database/cervezasdb`) con actualización automática de esquema (`spring.jpa.hibernate.ddl-auto=update`). La consola está disponible en `/h2-console` y conserva los datos mientras no elimines la carpeta `database/`.
 
 ## Tests
 
@@ -81,7 +82,11 @@ Se añadieron pruebas unitarias con Mockito/JUnit para todos los servicios clave
 
 - `index.html`: página de inicio y navegación hacia los módulos.
 - `auth.html`, `profile.html`, `beers.html`, `tastings.html`, `achievements.html`: vistas separadas para cada caso de uso del ciclo 1.
+- `beers.html`: catálogo completo con buscador, paginación (15 ítems) y modales flotantes para añadir/valorar; cada fila incluye acciones para valorar o eliminar la cerveza.
+- `tastings.html`: listado con filtros/paginación para degustaciones propias o por cerveza y formulario modal para registrar nuevas catas.
+- `achievements.html`: panel del menú contextual y galardones con botón de refresco y modal para reclamar logros. También lista los logros automáticos (degustar X, valorar X, añadir X) ya desbloqueados.
 - `app.js`: gestiona peticiones `fetch` hacia los endpoints REST, guarda el token en `localStorage` y añade listeners solo donde corresponda.
 - `styles.css`: estilo básico responsive compartido.
+- `EmailService`: servicio auxiliar que simula los correos de activación/recuperación registrándolos en los logs.
 
 Arranca con `./mvnw spring-boot:run` y visita `http://localhost:8080/` para acceder a cada página. El token de sesión se comparte automáticamente entre vistas mediante `localStorage`.

@@ -3,6 +3,7 @@ package es.upm.cervezas.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 import es.upm.cervezas.api.dto.AchievementRequest;
@@ -10,6 +11,7 @@ import es.upm.cervezas.domain.Achievement;
 import es.upm.cervezas.domain.User;
 import es.upm.cervezas.repository.AchievementRepository;
 import es.upm.cervezas.repository.UserRepository;
+import es.upm.cervezas.repository.UserAchievementRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,12 +29,14 @@ class AchievementServiceTest {
     private TokenAuthenticationService tokenAuthenticationService;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private UserAchievementRepository userAchievementRepository;
 
     private AchievementService service;
 
     @BeforeEach
     void setUp() {
-        service = new AchievementService(achievementRepository, tokenAuthenticationService, userRepository);
+        service = new AchievementService(achievementRepository, tokenAuthenticationService, userRepository, userAchievementRepository);
     }
 
     @Test
@@ -57,6 +61,7 @@ class AchievementServiceTest {
         achievement.setLevel(2);
         when(tokenAuthenticationService.findUserByToken("token")).thenReturn(Optional.of(user));
         when(achievementRepository.findById(5L)).thenReturn(Optional.of(achievement));
+        when(userAchievementRepository.existsByUserIdAndAchievementId(anyLong(), anyLong())).thenReturn(false);
 
         var response = service.assignToCurrentUser("token", 5L);
 
@@ -68,12 +73,14 @@ class AchievementServiceTest {
     @Test
     void refreshProgressChoosesBestAchievement() {
         User user = new User();
+        user.setId(2L);
         user.setGamificationPoints(50);
         Achievement achievement = new Achievement();
         achievement.setId(7L);
         achievement.setLevel(3);
         when(achievementRepository.findFirstByThresholdLessThanEqualOrderByThresholdDesc(50))
                 .thenReturn(Optional.of(achievement));
+        when(userAchievementRepository.existsByUserIdAndAchievementId(anyLong(), anyLong())).thenReturn(false);
 
         service.refreshProgress(user);
 

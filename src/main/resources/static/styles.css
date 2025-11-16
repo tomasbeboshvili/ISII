@@ -2,11 +2,17 @@
     box-sizing: border-box;
 }
 
+html, body {
+    min-height: 100%;
+}
+
 body {
     font-family: "Segoe UI", Arial, sans-serif;
     margin: 0;
     background: #fafafa;
     color: #1f2933;
+    display: flex;
+    flex-direction: column;
 }
 
 header, footer {
@@ -21,6 +27,7 @@ main {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    flex: 1;
 }
 
 section {
@@ -121,12 +128,11 @@ button:hover {
     list-style: none;
     margin: 0;
     padding: 0;
-    max-height: 280px;
 }
 
 .list li {
     padding: 0.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .hidden {
@@ -156,6 +162,170 @@ button:hover {
 .auth-layout {
     max-width: 520px;
     margin: 0 auto;
+}
+
+.auth-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.white-panel {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0;
+    color: #1f2933;
+}
+
+.beer-list.list li {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.9rem;
+}
+
+.beer-toolbar {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.toolbar-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.tasting-toolbar {
+    align-items: flex-start;
+}
+
+.beer-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.beer-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.danger {
+    background: #dc3545;
+}
+
+.danger:hover {
+    background: #bb2d3b;
+}
+
+.tasting-list-item {
+    display: block;
+    line-height: 1.4;
+}
+
+.menu-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1.5rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-overlay.hidden,
+.modal.hidden,
+.hidden {
+    display: none !important;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.close-modal {
+    background: transparent;
+    color: #1f2933;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+.modal-form {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    margin-top: 1rem;
+}
+
+.modal-actions .secondary {
+    background: #e2e8f0;
+    color: #1f2933;
+}
+
+.dropdown {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #fff;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 0.3rem;
+    box-shadow: 0 5px 15px rgba(15, 23, 42, 0.15);
+    z-index: 150;
+}
+
+.dropdown button {
+    width: 100%;
+    background: transparent;
+    color: #1f2933;
+    text-align: left;
+    border: none;
+    padding: 0.5rem 0.7rem;
+}
+
+.dropdown button:hover {
+    background: #e2e8f0;
+    color: #1f2933;
 }
 
 .profile-card {

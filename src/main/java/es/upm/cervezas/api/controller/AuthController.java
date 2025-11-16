@@ -20,6 +20,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Endpoints públicos para registrar, activar, iniciar sesión y gestionar las credenciales
+ * de los usuarios (recuperar / resetear contraseña).
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

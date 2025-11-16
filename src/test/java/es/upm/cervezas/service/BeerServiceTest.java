@@ -3,8 +3,10 @@ package es.upm.cervezas.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.eq;
 
 import es.upm.cervezas.api.dto.BeerRequest;
 import es.upm.cervezas.api.dto.RatingRequest;
@@ -13,6 +15,7 @@ import es.upm.cervezas.domain.BeerRating;
 import es.upm.cervezas.domain.User;
 import es.upm.cervezas.repository.BeerRatingRepository;
 import es.upm.cervezas.repository.BeerRepository;
+import es.upm.cervezas.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -36,12 +39,14 @@ class BeerServiceTest {
     private UserProfileService userProfileService;
     @Mock
     private AchievementService achievementService;
+    @Mock
+    private UserRepository userRepository;
 
     private BeerService beerService;
 
     @BeforeEach
     void setUp() {
-        beerService = new BeerService(beerRepository, beerRatingRepository, userProfileService, achievementService);
+        beerService = new BeerService(beerRepository, beerRatingRepository, userProfileService, achievementService, userRepository);
     }
 
     @Test
@@ -50,6 +55,7 @@ class BeerServiceTest {
         BeerRequest request = new BeerRequest("IPA", "IPA", "Brew", "ES", BigDecimal.valueOf(6.5), 60, "Notas");
         when(userProfileService.requireUser("token")).thenReturn(user);
         when(beerRepository.save(any(Beer.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(beerRepository.countByCreatedById(user.getId())).thenReturn(1L);
 
         var response = beerService.createBeer("token", request);
 
@@ -59,6 +65,8 @@ class BeerServiceTest {
         assertThat(saved.getCreatedBy()).isEqualTo(user);
         assertThat(response.name()).isEqualTo("IPA");
         verify(achievementService).refreshProgress(user);
+        verify(achievementService).checkMilestone(eq(user), eq("BEERS_CREATED"), anyInt());
+        verify(userRepository).save(user);
     }
 
     @Test
@@ -82,7 +90,7 @@ class BeerServiceTest {
         var beers = beerService.getAllBeers();
 
         assertThat(beers).hasSize(1);
-        assertThat(beers.get(0).averageScore()).isEqualTo(4.3);
+        assertThat(beers.get(0).averageScore()).isEqualTo(4.25);
         assertThat(beers.get(0).ratingsCount()).isEqualTo(3);
     }
 
@@ -95,12 +103,15 @@ class BeerServiceTest {
         when(beerRepository.findById(7L)).thenReturn(Optional.of(beer));
         when(beerRatingRepository.findByBeerIdAndUserId(7L, user.getId())).thenReturn(Optional.empty());
         when(beerRatingRepository.save(any(BeerRating.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(beerRatingRepository.countByUserId(user.getId())).thenReturn(1L);
 
         var response = beerService.rateBeer("token", new RatingRequest(7L, 5, "Excelente"));
 
         verify(beerRatingRepository).save(any(BeerRating.class));
         assertThat(response.id()).isEqualTo(beer.getId());
         verify(achievementService).refreshProgress(user);
+        verify(achievementService).checkMilestone(eq(user), eq("RATINGS"), anyInt());
+        verify(userRepository).save(user);
     }
 
     private User sampleUser() {

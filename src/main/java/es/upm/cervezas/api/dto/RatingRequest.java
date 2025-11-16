@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record RatingRequest(
         @NotNull Long beerId,
-        @Min(1) @Max(5) int score,
+        @Min(1) @Max(10) int score,
         String comment
 ) {
 }

@@ -11,7 +11,7 @@ El sistema BeerSP se planificó en dos ciclos, priorizando en C1 las funciones e
 | Requisito | Descripción | PF asociados |
 |-----------|-------------|--------------|
 | RQ1 | Verificación de edad mediante `AgeVerificationService`. | ILF Usuario (10 PF) |
-| RQ2-RQ5 | Registro, datos personales extendidos, creación y activación de cuenta. | EI Registro + EI Activación (7 PF) |
+| RQ2-RQ5 | Registro y datos personales extendidos (activación automática). | EI Registro (4 PF) |
 | RQ6 | Inicio de sesión con tokens de sesión (`SessionToken`). | EQ Login (3 PF) |
 | RQ7 | Recuperación de contraseña con tokens de un solo uso. | EQ Recuperar (3 PF) |
 | RQ8 | Menú de interacción contextual (`MenuService`). | EO Feed Menú (4 PF) |
@@ -43,7 +43,7 @@ Total PF del ciclo: aprox. 63 PF, alineados con el plan presentado (aunque 4 PF 
 - Cada registro suma puntos al usuario.
 
 ### 2.4 Valoraciones (`BeerRating`)
-- Score 1-5 y comentario opcional.
+- Score 1-10 y comentario opcional.
 - Restricción única por usuario+cerveza.
 
 ### 2.5 Galardones (`Achievement`)
@@ -58,8 +58,8 @@ Total PF del ciclo: aprox. 63 PF, alineados con el plan presentado (aunque 4 PF 
 ## 3. Servicios y lógica de negocio
 
 ### 3.1 Autenticación (`AuthService`)
-1. **Registro**: valida email y username únicos, verifica edad, persiste al usuario con token de activación y campos extendidos.
-2. **Activación**: confirma token y marca `activated=true`.
+1. **Registro**: valida email y username únicos, verifica edad y envía un código de activación mediante `EmailService`.
+2. **Activación**: requiere el código recibido para habilitar la cuenta.
 3. **Login**: valida credenciales, emite `SessionToken` con duración de 12h.
 4. **Recuperación**: genera token temporal de 30 min para restablecer contraseña.
 5. **Reset**: comprueba token y actualiza la contraseña.
@@ -120,7 +120,7 @@ Estos procesos mantienen sincronizados los campos `gamificationPoints`, `badgeLe
 ## 6. Configuración técnica
 
 - **Stack**: Spring Boot 3.5, Spring Data JPA, H2 (memoria), Spring Web, Validation, Security Crypto, Spring Session JDBC.
-- **Datasource**: H2 en memoria (`jdbc:h2:mem:cervezasdb`) con consola en `/h2-console`.
+- **Datasource**: H2 en fichero (`jdbc:h2:file:./database/cervezasdb`, auto-servidor activado) con consola en `/h2-console`. El contenido persiste entre reinicios.
 - **Security**: No se ha configurado Spring Security completo; el control se realiza con tokens personalizados.
 - **Construcción**: Maven Wrapper (`./mvnw`). En este entorno el wrapper no puede descargarse por restricciones de red, por lo que las pruebas deben ejecutarse cuando se disponga de conexión o caché local.
 
@@ -187,11 +187,12 @@ El backend de BeerSP Ciclo 1 implementa los requisitos esenciales de autenticaci
 Para facilitar la entrega universitaria se añadió un frontend estático servido por Spring Boot:
 
 - `index.html`: landing con instrucciones y enlaces.
-- `auth.html`: registro, activación, login y recuperación (RQ1-RQ7).
+- `auth.html`: registro (activación automática), login y recuperación (RQ1-RQ7).
 - `profile.html`: consulta/edición del ILF Usuario.
-- `beers.html`: alta/listado/valoración de cervezas (RQ22-RQ24).
-- `tastings.html`: registro y consulta de degustaciones (RQ21).
-- `achievements.html`: menú contextual (RQ8) y galardones.
+- `beers.html`: catálogo con buscador, paginación y modales flotantes para alta/valoración; cada ficha permite valorar o eliminar (RQ22-RQ24).
+- `tastings.html`: listado filtrable/paginado con modales para registrar nuevas catas o consultar por cerveza (RQ21).
+- `achievements.html`: tarjetón del menú contextual y listado de logros (incluye los desbloqueados automáticamente por degustar/valorar/añadir) con modal para reclamarlos (RQ8).
 - `app.js`: lógica compartida; activa solo los formularios presentes en cada página y reutiliza el token entre vistas.
+- `EmailService`: servicio que simula correos (se visualizan en los logs) para códigos de activación y recuperación.
 
 El objetivo es didáctico: no se emplean frameworks, pero cubre todas las operaciones del ciclo con un flujo claro para la defensa/práctica.

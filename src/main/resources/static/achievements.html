@@ -8,7 +8,7 @@
 <body>
 <header>
     <h1>Menú contextual y galardones</h1>
-    <p>Consulta las acciones disponibles (RQ8) y gestiona los logros del usuario.</p>
+    <p>Visualiza tus permisos actuales y administra los logros desbloqueados.</p>
 </header>
 
 <nav class="nav-links">
@@ -20,29 +20,51 @@
 </nav>
 
 <div class="token-box">
-    <strong>Token actual:</strong>
-    <span id="tokenLabel">sin sesión</span>
+    <strong>Estado:</strong>
+    <span id="sessionStatus">Sin sesión</span>
     <button type="button" id="logoutBtn">Cerrar sesión</button>
 </div>
 
 <main>
     <section class="grid two-columns">
-        <div>
-            <h2>Menú contextual</h2>
-            <button id="menuBtn">Consultar menú</button>
-            <pre id="menuInfo" class="panel"></pre>
+        <div class="white-panel profile-card">
+            <div class="menu-toolbar">
+                <h2>Menú contextual</h2>
+                <button id="refreshMenuBtn">Actualizar</button>
+            </div>
+            <p><strong>Email verificado:</strong> <span id="menuVerified">-</span></p>
+            <p><strong>Perfil completo:</strong> <span id="menuProfile">-</span></p>
+            <p><strong>Puede crear cervezas:</strong> <span id="menuBeer">-</span></p>
+            <p><strong>Puede registrar degustaciones:</strong> <span id="menuTasting">-</span></p>
+            <h3>Acciones disponibles</h3>
+            <ul id="menuActions"></ul>
         </div>
-        <div>
-            <h2>Galardones</h2>
-            <button id="listAchievementsBtn">Listar galardones</button>
-            <ul id="achievementList" class="panel list"></ul>
-            <label>ID galardón
-                <input type="number" id="claimAchievementId">
-            </label>
-            <button id="claimAchievementBtn">Asignar a mi perfil</button>
+        <div class="white-panel">
+            <div class="toolbar-actions">
+                <button id="openClaimAchievementBtn">Reclamar galardón</button>
+            </div>
+            <ul id="achievementList" class="list"></ul>
         </div>
     </section>
 </main>
+
+<div id="modalOverlay" class="modal-overlay hidden">
+    <div id="claimAchievementModal" class="modal hidden">
+        <div class="modal-header">
+            <h2>Asignar galardón</h2>
+            <button type="button" class="close-modal" data-close="claimAchievementModal">&times;</button>
+        </div>
+        <form id="claimAchievementForm" class="modal-form">
+            <label>ID galardón
+                <input type="number" id="claimAchievementId" required>
+            </label>
+            <div class="modal-actions">
+                <button type="button" class="secondary" data-close="claimAchievementModal">Cancelar</button>
+                <button type="submit">Asignar</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <footer>
     <p>BeerSP · Ciclo 1</p>

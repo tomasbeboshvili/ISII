@@ -3,6 +3,7 @@ package es.upm.cervezas.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,12 +39,14 @@ class AuthServiceTest {
     private AgeVerificationService ageVerificationService;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private EmailService emailService;
 
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, sessionTokenRepository, ageVerificationService, passwordEncoder);
+        authService = new AuthService(userRepository, sessionTokenRepository, ageVerificationService, passwordEncoder, emailService);
     }
 
     @Test
@@ -82,6 +85,7 @@ class AuthServiceTest {
         assertThat(saved.getPasswordHash()).isEqualTo("encoded");
         assertThat(response.activationToken()).isEqualTo(saved.getActivationToken());
         verify(ageVerificationService).verifyOrThrow(request.birthDate());
+        verify(emailService).send(eq("test@example.com"), any(), any());
     }
 
     @Test

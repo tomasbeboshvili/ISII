@@ -8,7 +8,7 @@
 <body>
 <header>
     <h1>Degustaciones</h1>
-    <p>Registra nuevas catas, consulta las propias y explora por cerveza.</p>
+    <p>Explora tus catas registradas o consulta las de una cerveza concreta.</p>
 </header>
 
 <nav class="nav-links">
@@ -20,43 +20,76 @@
 </nav>
 
 <div class="token-box">
-    <strong>Token actual:</strong>
-    <span id="tokenLabel">sin sesión</span>
+    <strong>Estado:</strong>
+    <span id="sessionStatus">Sin sesión</span>
     <button type="button" id="logoutBtn">Cerrar sesión</button>
 </div>
 
 <main>
     <section>
-        <div class="grid three-columns">
-            <form id="tastingForm">
-                <h2>Nueva degustación</h2>
-                <label>ID Cerveza <input type="number" name="beerId" required></label>
-                <label>Fecha y hora <input type="datetime-local" name="tastingDate" required></label>
-                <label>Ubicación <input type="text" name="location"></label>
-                <label>Notas <textarea name="notes"></textarea></label>
-                <label>Aroma (1-5) <input type="number" name="aromaScore" min="1" max="5" required></label>
-                <label>Sabor (1-5) <input type="number" name="flavorScore" min="1" max="5" required></label>
-                <label>Apariencia (1-5) <input type="number" name="appearanceScore" min="1" max="5" required></label>
-                <button type="submit">Registrar</button>
-            </form>
-
-            <div>
-                <h2>Mis degustaciones</h2>
-                <button id="myTastingsBtn">Actualizar</button>
-                <ul id="myTastingsList" class="panel list"></ul>
+        <div class="beer-toolbar tasting-toolbar">
+            <label>Buscar
+                <input type="text" id="tastingSearchInput" placeholder="Nombre de la cerveza...">
+            </label>
+            <div class="toolbar-actions">
+                <button id="loadMyTastingsBtn">Mis degustaciones</button>
+                <button id="openFilterTastingBtn">Por cerveza</button>
+                <button id="openCreateTastingBtn">Registrar degustación</button>
             </div>
-
-            <div>
-                <h2>Por cerveza</h2>
-                <label>ID Cerveza
-                    <input type="number" id="beerTastingsId">
-                </label>
-                <button id="beerTastingsBtn">Consultar</button>
-                <ul id="beerTastingsList" class="panel list"></ul>
-            </div>
+        </div>
+        <h2 id="tastingHeading">Mis degustaciones</h2>
+        <ul id="tastingList" class="white-panel list tasting-list"></ul>
+        <div class="pagination-controls">
+            <button id="prevTastingPageBtn" disabled>&laquo; Anterior</button>
+            <span id="tastingPageInfo">Página 1 de 1</span>
+            <button id="nextTastingPageBtn" disabled>Siguiente &raquo;</button>
         </div>
     </section>
 </main>
+
+<div id="modalOverlay" class="modal-overlay hidden">
+    <div id="createTastingModal" class="modal hidden">
+        <div class="modal-header">
+            <h2>Nueva degustación</h2>
+            <button type="button" class="close-modal" data-close="createTastingModal">&times;</button>
+        </div>
+        <form id="tastingForm" class="modal-form">
+            <label>Cerveza
+                <input type="text" id="tastingBeerInput" placeholder="Escribe para buscar..." autocomplete="off">
+                <div id="tastingBeerDropdown" class="dropdown hidden"></div>
+                <input type="hidden" name="beerId" id="tastingBeerId" required>
+            </label>
+            <label>Fecha y hora <input type="datetime-local" name="tastingDate" required></label>
+            <label>Ubicación <input type="text" name="location"></label>
+            <label>Notas <textarea name="notes"></textarea></label>
+            <label>Aroma (1-5) <input type="number" name="aromaScore" min="1" max="5" required></label>
+            <label>Sabor (1-5) <input type="number" name="flavorScore" min="1" max="5" required></label>
+            <label>Apariencia (1-5) <input type="number" name="appearanceScore" min="1" max="5" required></label>
+            <div class="modal-actions">
+                <button type="button" class="secondary" data-close="createTastingModal">Cancelar</button>
+                <button type="submit">Guardar</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="filterTastingModal" class="modal hidden">
+        <div class="modal-header">
+            <h2>Degustaciones por cerveza</h2>
+            <button type="button" class="close-modal" data-close="filterTastingModal">&times;</button>
+        </div>
+        <form id="filterTastingForm" class="modal-form">
+            <label>Cerveza
+                <input type="text" id="filterBeerInput" placeholder="Escribe para buscar..." autocomplete="off">
+                <div id="filterBeerDropdown" class="dropdown hidden"></div>
+                <input type="hidden" id="filterBeerId" required>
+            </label>
+            <div class="modal-actions">
+                <button type="button" class="secondary" data-close="filterTastingModal">Cancelar</button>
+                <button type="submit">Consultar</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <footer>
     <p>BeerSP · Ciclo 1</p>

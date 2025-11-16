@@ -7,6 +7,7 @@ import es.upm.cervezas.domain.Tasting;
 import es.upm.cervezas.domain.User;
 import es.upm.cervezas.repository.BeerRepository;
 import es.upm.cervezas.repository.TastingRepository;
+import es.upm.cervezas.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.util.List;
@@ -16,6 +17,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Servicio responsable de registrar y consultar degustaciones, actualizando los puntos y
+ * galardones asociados al usuario.
+ */
 @Service
 public class TastingService {
 
@@ -23,17 +28,20 @@ public class TastingService {
     private final BeerRepository beerRepository;
     private final UserProfileService userProfileService;
     private final AchievementService achievementService;
+    private final UserRepository userRepository;
 
     private static final Logger log = LoggerFactory.getLogger(TastingService.class);
 
     public TastingService(TastingRepository tastingRepository,
                           BeerRepository beerRepository,
                           UserProfileService userProfileService,
-                          AchievementService achievementService) {
+                          AchievementService achievementService,
+                          UserRepository userRepository) {
         this.tastingRepository = tastingRepository;
         this.beerRepository = beerRepository;
         this.userProfileService = userProfileService;
         this.achievementService = achievementService;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -54,29 +62,39 @@ public class TastingService {
         tasting.setCreatedAt(Instant.now());
 
         tastingRepository.save(tasting);
-        log.info("Degustación {} registrada por usuario {}", tasting.getId(), user.getId());
+        log.info("Degustación registrada (beerId={}, aroma/flavor/app={}/{}/{}) por usuario {}",
+                tasting.getBeer().getId(),
+                tasting.getAromaScore(),
+                tasting.getFlavorScore(),
+                tasting.getAppearanceScore(),
+                user.getId());
         user.setGamificationPoints(user.getGamificationPoints() + 10);
+        user.setTastingsCount((int) tastingRepository.countByUserId(user.getId()));
+        userRepository.save(user);
         achievementService.refreshProgress(user);
+        achievementService.checkMilestone(user, "TASTINGS", user.getTastingsCount());
         return toResponse(tasting);
     }
 
     @Transactional(readOnly = true)
     public List<TastingResponse> forCurrentUser(String token) {
         User user = userProfileService.requireUser(token);
-        log.debug("Listando degustaciones del usuario {}", user.getId());
-        return tastingRepository.findByUserId(user.getId())
+        List<TastingResponse> tastings = tastingRepository.findByUserId(user.getId())
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+        log.info("Recuperadas {} degustaciones del usuario {}", tastings.size(), user.getId());
+        return tastings;
     }
 
     @Transactional(readOnly = true)
     public List<TastingResponse> forBeer(Long beerId) {
-        log.debug("Listando degustaciones para cerveza {}", beerId);
-        return tastingRepository.findByBeerId(beerId)
+        List<TastingResponse> tastings = tastingRepository.findByBeerId(beerId)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+        log.info("Recuperadas {} degustaciones para la cerveza {}", tastings.size(), beerId);
+        return tastings;
     }
 
     private TastingResponse toResponse(Tasting tasting) {

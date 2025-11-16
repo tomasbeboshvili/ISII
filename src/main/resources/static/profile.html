@@ -20,8 +20,8 @@
 </nav>
 
 <div class="token-box">
-    <strong>Token actual:</strong>
-    <span id="tokenLabel">sin sesión</span>
+    <strong>Estado:</strong>
+    <span id="sessionStatus">Sin sesión</span>
     <button type="button" id="logoutBtn">Cerrar sesión</button>
 </div>
 
@@ -30,7 +30,6 @@
         <div class="grid two-columns">
             <div>
                 <h2>Datos almacenados</h2>
-                <button id="loadProfileBtn">Cargar perfil</button>
                 <div id="profileCard" class="profile-card hidden">
                     <img id="profilePhoto" alt="Foto de perfil">
                     <h3 id="profileDisplayName"></h3>
@@ -50,7 +49,7 @@
                         <li><strong>Galardón actual:</strong> <span id="profileAchievement"></span></li>
                     </ul>
                 </div>
-                <p class="muted">Usa el botón para traer los datos actuales.</p>
+                <p class="muted">Los datos se cargarán automáticamente cuando tengas sesión.</p>
             </div>
             <div>
                 <button id="toggleProfileFormBtn" class="link-btn">Editar perfil</button>

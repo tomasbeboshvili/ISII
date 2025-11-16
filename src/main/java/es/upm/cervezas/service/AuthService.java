@@ -23,6 +23,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Servicio encargado de gestionar el ciclo de vida de los usuarios: registro, activación,
+ * login/logout y recuperación de credenciales. Encapsula todas las reglas de negocio
+ * relacionadas con la autenticación.
+ */
 @Service
 public class AuthService {
 
@@ -35,17 +40,23 @@ public class AuthService {
     private final SessionTokenRepository sessionTokenRepository;
     private final AgeVerificationService ageVerificationService;
     private final PasswordEncoder passwordEncoder;
-
+    private final EmailService emailService;
     public AuthService(UserRepository userRepository,
                        SessionTokenRepository sessionTokenRepository,
                        AgeVerificationService ageVerificationService,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       EmailService emailService) {
         this.userRepository = userRepository;
         this.sessionTokenRepository = sessionTokenRepository;
         this.ageVerificationService = ageVerificationService;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
 
+    /**
+     * Registra un nuevo usuario (comprobando edad y unicidad de email/username) y le envía un
+     * código de activación simulado al correo. Queda marcado como pendiente de activación.
+     */
     @Transactional
     public RegistrationResponse register(RegistrationRequest request) {
         if (userRepository.existsByEmailIgnoreCase(request.email())) {
@@ -81,13 +92,18 @@ public class AuthService {
 
         userRepository.save(user);
         log.debug("Usuario {} registrado pendiente de activación", user.getId());
+        emailService.send(user.getEmail(), "Activa tu cuenta BeerSP",
+                "Tu código de activación es: " + user.getActivationToken());
 
         return new RegistrationResponse(
-                "Registro exitoso. Completa la activación desde el email simulado",
+                "Registro exitoso. Revisa el correo simulado con tu código.",
                 user.getActivationToken()
         );
     }
 
+    /**
+     * Activa un usuario a partir del token recibido por correo.
+     */
     @Transactional
     public ActivationResponse activate(ActivationRequest request) {
         User user = userRepository.findByActivationToken(request.token())
@@ -101,6 +117,9 @@ public class AuthService {
         return new ActivationResponse("Cuenta activada correctamente");
     }
 
+    /**
+     * Inicia sesión comprobando credenciales y devuelve el token de sesión generado.
+     */
     @Transactional
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmailIgnoreCase(request.email())
@@ -127,6 +146,9 @@ public class AuthService {
         return new LoginResponse(sessionToken.getToken(), "Inicio de sesión correcto");
     }
 
+    /**
+     * Marca como inactivo el token proporcionado (si existe).
+     */
     @Transactional
     public void logout(String token) {
         if (token == null || token.isBlank()) {
@@ -151,8 +173,11 @@ public class AuthService {
         user.setPasswordResetToken(UUID.randomUUID().toString());
         user.setPasswordResetExpiresAt(Instant.now().plus(RESET_DURATION));
 
+        emailService.send(user.getEmail(), "Recupera tu contraseña BeerSP",
+                "Tu código de recuperación es: " + user.getPasswordResetToken());
+
         return new PasswordRecoveryResponse(
-                "Solicitud registrada. Usa el token simulado para restablecer tu contraseña",
+                "Solicitud registrada. Revisa el correo simulado con tu código.",
                 user.getPasswordResetToken()
         );
     }

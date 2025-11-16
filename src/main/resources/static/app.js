@@ -1,10 +1,23 @@
 const state = {
-    token: localStorage.getItem('authToken') || null
+    token: localStorage.getItem('authToken') || null,
+    beers: [],
+    currentBeerPage: 1,
+    beersPerPage: 15,
+    tastings: [],
+    currentTastingPage: 1,
+    tastingsPerPage: 10,
+    tastingMode: 'mine' // 'mine' or 'beer'
 };
 
-const tokenLabel = document.getElementById('tokenLabel');
+const sessionStatus = document.getElementById('sessionStatus');
 const logoutBtn = document.getElementById('logoutBtn');
 const messagesBox = document.getElementById('messages');
+const modalOverlay = document.getElementById('modalOverlay');
+const createBeerModal = document.getElementById('createBeerModal');
+const rateBeerModal = document.getElementById('rateBeerModal');
+const createTastingModal = document.getElementById('createTastingModal');
+const filterTastingModal = document.getElementById('filterTastingModal');
+const claimAchievementModal = document.getElementById('claimAchievementModal');
 
 function setToken(token) {
     state.token = token;
@@ -13,8 +26,8 @@ function setToken(token) {
     } else {
         localStorage.removeItem('authToken');
     }
-    if (tokenLabel) {
-        tokenLabel.textContent = token || 'sin sesión';
+    if (sessionStatus) {
+        sessionStatus.textContent = token ? 'Sesión activa' : 'Sin sesión';
     }
 }
 
@@ -96,20 +109,20 @@ if (registerForm) {
         e.preventDefault();
         try {
             const payload = serializeForm(e.target);
+            if (payload.birthDate && !isAdult(payload.birthDate)) {
+                showMessage('Debes ser mayor de edad para registrarte.', 'error');
+                return;
+            }
             if (!payload.displayName || !payload.displayName.trim()) {
                 const composed = `${payload.firstName || ''} ${payload.lastName || ''}`.trim();
                 payload.displayName = composed || payload.username || payload.email;
             }
             payload.birthDate = payload.birthDate || null;
-            const data = await apiRequest('/auth/register', {
+            await apiRequest('/auth/register', {
                 method: 'POST',
                 body: JSON.stringify(payload)
             });
-            showMessage(`Registro correcto. Token activación: ${data.activationToken}`);
-            const activationInput = document.getElementById('activationToken');
-            if (activationInput) {
-                activationInput.value = data.activationToken || '';
-            }
+            showMessage('Registro correcto. Ya puedes iniciar sesión.');
             e.target.reset();
         } catch (err) {
             showMessage(err.message, 'error');
@@ -136,25 +149,6 @@ if (loginForm) {
     });
 }
 
-// Activación
-const activateBtn = document.getElementById('activateBtn');
-if (activateBtn) {
-    activateBtn.addEventListener('click', async () => {
-        const activationInput = document.getElementById('activationToken');
-        const token = activationInput?.value.trim();
-        if (!token) return;
-        try {
-            await apiRequest('/auth/activate', {
-                method: 'POST',
-                body: JSON.stringify({token})
-            });
-            showMessage('Cuenta activada');
-        } catch (err) {
-            showMessage(err.message, 'error');
-        }
-    });
-}
-
 // Recuperación
 const recoverBtn = document.getElementById('recoverBtn');
 if (recoverBtn) {
@@ -173,25 +167,56 @@ if (recoverBtn) {
     });
 }
 
-// Perfil
-const profileBtn = document.getElementById('loadProfileBtn');
-if (profileBtn) {
-    profileBtn.addEventListener('click', async () => {
+const resetForm = document.getElementById('resetForm');
+if (resetForm) {
+    resetForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         try {
-            const profile = await apiRequest('/users/me');
-            renderProfileCard(profile);
+            const payload = serializeForm(resetForm);
+            await apiRequest('/auth/password/reset', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            showMessage('Contraseña actualizada.');
+            resetForm.reset();
+        } catch (err) {
+            showMessage(err.message, 'error');
+        }
+    });
+}
+const activateBtn = document.getElementById('activateBtn');
+if (activateBtn) {
+    activateBtn.addEventListener('click', async () => {
+        const tokenField = document.getElementById('activationToken');
+        const tokenValue = tokenField?.value.trim();
+        if (!tokenValue) {
+            showMessage('Introduce el código de activación.', 'error');
+            return;
+        }
+        try {
+            await apiRequest('/auth/activate', {
+                method: 'POST',
+                body: JSON.stringify({token: tokenValue})
+            });
+            showMessage('Cuenta activada correctamente.');
+            if (tokenField) tokenField.value = '';
         } catch (err) {
             showMessage(err.message, 'error');
         }
     });
 }
 
+// Perfil
 const profileForm = document.getElementById('profileForm');
 if (profileForm) {
     profileForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
             const payload = serializeForm(e.target);
+            if (payload.birthday && !isAdult(payload.birthday)) {
+                showMessage('Debes indicar una fecha válida y mayor de edad.', 'error');
+                return;
+            }
             if (!payload.displayName || !payload.displayName.trim()) {
                 const composed = `${payload.firstName || ''} ${payload.lastName || ''}`.trim();
                 if (composed) {
@@ -225,6 +250,7 @@ if (beerForm) {
             });
             showMessage(`Cerveza creada con id ${data.id}`);
             e.target.reset();
+            closeModal(createBeerModal);
             await loadBeers();
         } catch (err) {
             showMessage(err.message, 'error');
@@ -235,14 +261,32 @@ if (beerForm) {
 async function loadBeers() {
     try {
         const beers = await apiRequest('/beers');
-        const list = document.getElementById('beerList');
-        list.innerHTML = '';
-        beers.forEach(beer => {
-            const li = document.createElement('li');
-            li.innerHTML = `<strong>${beer.id} - ${beer.name}</strong><br>
-                Estilo: ${beer.style} · ABV: ${beer.abv ?? '-'} · Media: ${beer.averageScore ?? 'N/A'} (${beer.ratingsCount} votos)`;
-            list.appendChild(li);
-        });
+        state.beers = beers;
+        renderCatalogList();
+    } catch (err) {
+        showMessage(err.message, 'error');
+    }
+}
+
+async function loadMyTastings() {
+    try {
+        const tastings = await apiRequest('/tastings/me');
+        state.tastings = tastings;
+        state.currentTastingPage = 1;
+        updateTastingHeading('Mis degustaciones');
+        renderTastingCatalog();
+    } catch (err) {
+        showMessage(err.message, 'error');
+    }
+}
+
+async function loadTastingsByBeer(beerId) {
+    try {
+        const tastings = await apiRequest(`/tastings/beer/${beerId}`);
+        state.tastings = tastings;
+        state.currentTastingPage = 1;
+        updateTastingHeading(`Degustaciones de la cerveza #${beerId}`);
+        renderTastingCatalog();
     } catch (err) {
         showMessage(err.message, 'error');
     }
@@ -253,25 +297,187 @@ if (listBeersBtn) {
     listBeersBtn.addEventListener('click', loadBeers);
 }
 
+const prevPageBtn = document.getElementById('prevPageBtn');
+const nextPageBtn = document.getElementById('nextPageBtn');
+const pageInfo = document.getElementById('pageInfo');
+if (prevPageBtn) {
+    prevPageBtn.addEventListener('click', () => changeBeerPage(-1));
+}
+if (nextPageBtn) {
+    nextPageBtn.addEventListener('click', () => changeBeerPage(1));
+}
+
+const openCreateBeerBtn = document.getElementById('openCreateBeerBtn');
+if (openCreateBeerBtn) {
+    openCreateBeerBtn.addEventListener('click', () => openModal(createBeerModal));
+}
+
+document.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', (event) => {
+        const targetId = event.currentTarget.getAttribute('data-close');
+        closeModal(document.getElementById(targetId));
+    });
+});
+
+if (modalOverlay) {
+    modalOverlay.addEventListener('click', (event) => {
+        if (event.target === modalOverlay) {
+            closeAllModals();
+        }
+    });
+}
+
 const ratingForm = document.getElementById('ratingForm');
 if (ratingForm) {
     ratingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
             const payload = serializeForm(e.target);
+            if (!payload.beerId) {
+                showMessage('Selecciona una cerveza antes de valorar.', 'error');
+                return;
+            }
             payload.beerId = Number(payload.beerId);
             payload.score = Number(payload.score);
+            if (payload.score < 1 || payload.score > 10) {
+                showMessage('La puntuación debe estar entre 1 y 10.', 'error');
+                return;
+            }
             const data = await apiRequest('/beers/rate', {
                 method: 'POST',
                 body: JSON.stringify(payload)
             });
-            showMessage(`Valoración guardada. Media actual: ${data.averageScore ?? 'N/A'}`);
-            e.target.reset();
+            const media = data.averageScore != null ? Number(data.averageScore).toFixed(2) : 'N/A';
+            showMessage(`Valoración guardada. Media actual: ${media}`);
+            ratingForm.reset();
+            setText('ratingSelectedBeer', 'Ninguna');
+            const beerIdInput = document.getElementById('ratingBeerId');
+            if (beerIdInput) beerIdInput.value = '';
+            closeModal(rateBeerModal);
             await loadBeers();
         } catch (err) {
             showMessage(err.message, 'error');
         }
     });
+}
+
+const beerListElement = document.getElementById('beerList');
+if (beerListElement) {
+    beerListElement.addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-action]');
+        if (!button) {
+            return;
+        }
+        const action = button.dataset.action;
+        const id = Number(button.dataset.id);
+        const name = button.dataset.name;
+        if (action === 'rate-beer') {
+            openRateModal(id, name);
+        } else if (action === 'delete-beer') {
+            const confirmDelete = window.confirm(`¿Seguro que deseas eliminar "${name}"?`);
+            if (!confirmDelete) return;
+            try {
+                await apiRequest(`/beers/${id}`, {method: 'DELETE'});
+                showMessage(`Cerveza "${name}" eliminada`);
+                await loadBeers();
+            } catch (err) {
+                showMessage(err.message, 'error');
+            }
+        }
+    });
+}
+
+const beerSearchInput = document.getElementById('beerSearchInput');
+if (beerSearchInput) {
+    beerSearchInput.addEventListener('input', renderCatalogList);
+}
+
+const refreshMenuBtn = document.getElementById('refreshMenuBtn');
+if (refreshMenuBtn) {
+    refreshMenuBtn.addEventListener('click', loadMenu);
+}
+
+const openClaimAchievementBtn = document.getElementById('openClaimAchievementBtn');
+if (openClaimAchievementBtn) {
+    openClaimAchievementBtn.addEventListener('click', () => openModal(claimAchievementModal));
+}
+
+const claimAchievementForm = document.getElementById('claimAchievementForm');
+if (claimAchievementForm) {
+    claimAchievementForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = Number(document.getElementById('claimAchievementId')?.value);
+        if (!id) {
+            showMessage('Introduce un ID de galardón válido.', 'error');
+            return;
+        }
+        try {
+            await apiRequest(`/achievements/${id}/claim`, {method: 'POST'});
+            showMessage('Galardón asignado');
+            claimAchievementForm.reset();
+            closeModal(claimAchievementModal);
+        } catch (err) {
+            showMessage(err.message, 'error');
+        }
+    });
+}
+const tastingSearchInput = document.getElementById('tastingSearchInput');
+if (tastingSearchInput) {
+    tastingSearchInput.addEventListener('input', renderTastingCatalog);
+}
+
+const openCreateTastingBtn = document.getElementById('openCreateTastingBtn');
+if (openCreateTastingBtn) {
+    openCreateTastingBtn.addEventListener('click', () => openModal(createTastingModal));
+}
+
+const openFilterTastingBtn = document.getElementById('openFilterTastingBtn');
+if (openFilterTastingBtn) {
+    openFilterTastingBtn.addEventListener('click', () => openModal(filterTastingModal));
+}
+
+const loadMyTastingsBtn = document.getElementById('loadMyTastingsBtn');
+if (loadMyTastingsBtn) {
+    loadMyTastingsBtn.addEventListener('click', () => {
+        state.tastingMode = 'mine';
+        loadMyTastings();
+    });
+}
+
+const filterTastingForm = document.getElementById('filterTastingForm');
+if (filterTastingForm) {
+    filterTastingForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const hidden = document.getElementById('filterBeerId');
+        let beerId = Number(hidden?.value);
+        if (!beerId && filterBeerInput) {
+            const fallback = resolveBeerIdFromInput(filterBeerInput.value);
+            if (fallback) {
+                beerId = fallback;
+                if (hidden) hidden.value = fallback;
+            }
+        }
+        if (!beerId) {
+            showMessage('Selecciona una cerveza válida en el desplegable.', 'error');
+            return;
+        }
+        state.tastingMode = 'beer';
+        await loadTastingsByBeer(beerId);
+        closeModal(filterTastingModal);
+        if (filterBeerInput) filterBeerInput.value = '';
+        if (filterBeerDropdown) filterBeerDropdown.classList.add('hidden');
+        if (hidden) hidden.value = '';
+    });
+}
+
+const prevTastingPageBtn = document.getElementById('prevTastingPageBtn');
+const nextTastingPageBtn = document.getElementById('nextTastingPageBtn');
+const tastingPageInfo = document.getElementById('tastingPageInfo');
+if (prevTastingPageBtn) {
+    prevTastingPageBtn.addEventListener('click', () => changeTastingPage(-1));
+}
+if (nextTastingPageBtn) {
+    nextTastingPageBtn.addEventListener('click', () => changeTastingPage(1));
 }
 
 // Degustaciones
@@ -281,7 +487,19 @@ if (tastingForm) {
         e.preventDefault();
         try {
             const payload = serializeForm(e.target);
-            payload.beerId = Number(payload.beerId);
+            let beerId = Number(payload.beerId);
+            if (!beerId && tastingBeerInput) {
+                const fallback = resolveBeerIdFromInput(tastingBeerInput.value);
+                if (fallback) {
+                    beerId = fallback;
+                    if (tastingBeerIdInput) tastingBeerIdInput.value = fallback;
+                }
+            }
+            if (!beerId) {
+                showMessage('Selecciona una cerveza válida del desplegable.', 'error');
+                return;
+            }
+            payload.beerId = beerId;
             payload.aromaScore = Number(payload.aromaScore);
             payload.flavorScore = Number(payload.flavorScore);
             payload.appearanceScore = Number(payload.appearanceScore);
@@ -294,32 +512,13 @@ if (tastingForm) {
             });
             showMessage(`Degustación registrada con id ${data.id}`);
             e.target.reset();
-        } catch (err) {
-            showMessage(err.message, 'error');
-        }
-    });
-}
-
-const myTastingsBtn = document.getElementById('myTastingsBtn');
-if (myTastingsBtn) {
-    myTastingsBtn.addEventListener('click', async () => {
-        try {
-            const tastings = await apiRequest('/tastings/me');
-            renderTastingList(document.getElementById('myTastingsList'), tastings);
-        } catch (err) {
-            showMessage(err.message, 'error');
-        }
-    });
-}
-
-const beerTastingsBtn = document.getElementById('beerTastingsBtn');
-if (beerTastingsBtn) {
-    beerTastingsBtn.addEventListener('click', async () => {
-        const beerId = Number(document.getElementById('beerTastingsId')?.value);
-        if (!beerId) return;
-        try {
-            const tastings = await apiRequest(`/tastings/beer/${beerId}`);
-            renderTastingList(document.getElementById('beerTastingsList'), tastings);
+            closeModal(createTastingModal);
+            if (tastingBeerInput) tastingBeerInput.value = '';
+            if (tastingBeerDropdown) tastingBeerDropdown.classList.add('hidden');
+            if (tastingBeerIdInput) tastingBeerIdInput.value = '';
+            if (state.tastingMode === 'mine') {
+                await loadMyTastings();
+            }
         } catch (err) {
             showMessage(err.message, 'error');
         }
@@ -337,15 +536,176 @@ if (toggleProfileFormBtn) {
     });
 }
 
-function renderTastingList(container, tastings) {
-    container.innerHTML = '';
-    tastings.forEach(tasting => {
+function renderCatalogList() {
+    const list = document.getElementById('beerList');
+    if (!list) return;
+    const term = (document.getElementById('beerSearchInput')?.value || '').toLowerCase().trim();
+    const filtered = term
+            ? state.beers.filter(beer => beer.name.toLowerCase().includes(term))
+            : state.beers;
+    const totalPages = Math.max(1, Math.ceil(filtered.length / state.beersPerPage));
+    if (state.currentBeerPage > totalPages) {
+        state.currentBeerPage = totalPages;
+    }
+    const start = (state.currentBeerPage - 1) * state.beersPerPage;
+    const pageItems = filtered.slice(start, start + state.beersPerPage);
+    list.innerHTML = '';
+    if (!pageItems.length) {
         const li = document.createElement('li');
-        li.innerHTML = `<strong>#${tasting.id} · ${tasting.beerName ?? tasting.beerId}</strong><br>
-        ${tasting.tastingDate ?? ''}<br>
-        Aroma/Flavor/App: ${tasting.aromaScore}/${tasting.flavorScore}/${tasting.appearanceScore}`;
-        container.appendChild(li);
+        li.textContent = 'No hay cervezas registradas.';
+        list.appendChild(li);
+        updatePagination(filtered.length, totalPages);
+        return;
+    }
+    pageItems.forEach(beer => {
+        const avg = beer.averageScore != null ? Number(beer.averageScore).toFixed(2) : 'N/A';
+        const li = document.createElement('li');
+        li.innerHTML = `<div class="beer-list-item">
+            <div>
+                <strong>${beer.name}</strong> (#${beer.id})<br>
+                Estilo: ${beer.style} · ABV: ${beer.abv ?? '-'} · Media: ${avg} (${beer.ratingsCount} votos)
+            </div>
+            <div class="beer-actions">
+                <button type="button" data-action="rate-beer" data-id="${beer.id}" data-name="${beer.name}">Valorar</button>
+                <button type="button" class="danger" data-action="delete-beer" data-id="${beer.id}" data-name="${beer.name}">Eliminar</button>
+            </div>
+        </div>`;
+        list.appendChild(li);
     });
+    updatePagination(filtered.length, totalPages);
+}
+
+function renderTastingCatalog() {
+    const list = document.getElementById('tastingList');
+    if (!list) return;
+    const term = (tastingSearchInput?.value || '').toLowerCase().trim();
+    const filtered = term
+            ? state.tastings.filter(t => (t.beerName || '').toLowerCase().includes(term))
+            : state.tastings;
+    const totalPages = Math.max(1, Math.ceil(filtered.length / state.tastingsPerPage));
+    if (state.currentTastingPage > totalPages) {
+        state.currentTastingPage = totalPages;
+    }
+    const start = (state.currentTastingPage - 1) * state.tastingsPerPage;
+    const pageItems = filtered.slice(start, start + state.tastingsPerPage);
+    list.innerHTML = '';
+    if (!pageItems.length) {
+        const li = document.createElement('li');
+        li.textContent = 'No hay degustaciones para mostrar.';
+        list.appendChild(li);
+        updateTastingPagination(totalPages);
+        return;
+    }
+    pageItems.forEach(tasting => {
+        const li = document.createElement('li');
+        li.innerHTML = `<div class="tasting-list-item">
+            <div>
+                <strong>${tasting.beerName ?? ('Cerveza #' + tasting.beerId)}</strong><br>
+                Fecha: ${tasting.tastingDate ?? 'N/A'} · Ubicación: ${tasting.location ?? 'N/A'}<br>
+                Aroma/Sabor/Apariencia: ${tasting.aromaScore}/${tasting.flavorScore}/${tasting.appearanceScore}<br>
+                Notas: ${tasting.notes ?? '-'}
+            </div>
+        </div>`;
+        list.appendChild(li);
+    });
+    updateTastingPagination(totalPages);
+}
+
+function openModal(modal) {
+    if (!modalOverlay || !modal) return;
+    modalOverlay.classList.remove('hidden');
+    modal.classList.remove('hidden');
+}
+
+function closeModal(modal) {
+    if (!modal) return;
+    modal.classList.add('hidden');
+    if (!document.querySelector('.modal:not(.hidden)')) {
+        modalOverlay?.classList.add('hidden');
+    }
+}
+
+function closeAllModals() {
+    document.querySelectorAll('.modal').forEach(modal => modal.classList.add('hidden'));
+    modalOverlay?.classList.add('hidden');
+}
+
+function updatePagination(totalItems, totalPages) {
+    if (!pageInfo || !prevPageBtn || !nextPageBtn) return;
+    pageInfo.textContent = `Página ${state.currentBeerPage} de ${totalPages}`;
+    prevPageBtn.disabled = state.currentBeerPage === 1;
+    nextPageBtn.disabled = state.currentBeerPage === totalPages;
+}
+
+function changeBeerPage(delta) {
+    state.currentBeerPage += delta;
+    if (state.currentBeerPage < 1) state.currentBeerPage = 1;
+    renderCatalogList();
+}
+
+function renderBeerDropdown(input, dropdown, hiddenField) {
+    if (!dropdown) return;
+    const term = (input.value || '').toLowerCase().trim();
+    const items = state.beers
+            .filter(beer => beer.name.toLowerCase().includes(term))
+            .slice(0, 15);
+    dropdown.innerHTML = '';
+    if (!items.length) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+    items.forEach(beer => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = `${beer.name} (#${beer.id})`;
+        button.addEventListener('click', () => {
+            input.value = beer.name;
+            hiddenField.value = beer.id;
+            dropdown.classList.add('hidden');
+        });
+        dropdown.appendChild(button);
+    });
+    dropdown.classList.remove('hidden');
+}
+
+    document.addEventListener('click', (event) => {
+    [tastingBeerDropdown, filterBeerDropdown].forEach(dropdown => {
+        if (dropdown && !dropdown.contains(event.target) &&
+                event.target !== tastingBeerInput && event.target !== filterBeerInput) {
+            dropdown.classList.add('hidden');
+        }
+    });
+});
+
+function resolveBeerIdFromInput(value) {
+    const term = (value || '').toLowerCase().trim();
+    if (!term) {
+        return null;
+    }
+    const exact = state.beers.find(beer => beer.name.toLowerCase() === term);
+    if (exact) {
+        return exact.id;
+    }
+    const partial = state.beers.find(beer => beer.name.toLowerCase().includes(term));
+    return partial ? partial.id : null;
+}
+
+const tastingHeadingEl = document.getElementById('tastingHeading');
+function updateTastingHeading(text) {
+    if (tastingHeadingEl) tastingHeadingEl.textContent = text;
+}
+
+function updateTastingPagination(totalPages) {
+    if (!tastingPageInfo || !prevTastingPageBtn || !nextTastingPageBtn) return;
+    tastingPageInfo.textContent = `Página ${state.currentTastingPage} de ${totalPages}`;
+    prevTastingPageBtn.disabled = state.currentTastingPage === 1;
+    nextTastingPageBtn.disabled = state.currentTastingPage === totalPages;
+}
+
+function changeTastingPage(delta) {
+    state.currentTastingPage += delta;
+    if (state.currentTastingPage < 1) state.currentTastingPage = 1;
+    renderTastingCatalog();
 }
 
 // Toggle registro en vista de auth
@@ -361,63 +721,33 @@ if (toggleRegisterBtn) {
     });
 }
 
-// Menú
-const menuBtn = document.getElementById('menuBtn');
-if (menuBtn) {
-    menuBtn.addEventListener('click', async () => {
-        try {
-            const data = await apiRequest('/menu');
-            const info = document.getElementById('menuInfo');
-            if (info) {
-                info.textContent = JSON.stringify(data, null, 2);
-            }
-        } catch (err) {
-            showMessage(err.message, 'error');
-        }
-    });
-}
-
-// Galardones
-const listAchievementsBtn = document.getElementById('listAchievementsBtn');
-if (listAchievementsBtn) {
-    listAchievementsBtn.addEventListener('click', async () => {
-        try {
-            const data = await apiRequest('/achievements');
-            const list = document.getElementById('achievementList');
-            if (!list) return;
-            list.innerHTML = '';
-            data.forEach(ach => {
-                const li = document.createElement('li');
-                li.innerHTML = `<strong>${ach.id} - ${ach.name}</strong><br>
-                    Nivel: ${ach.level} · Umbral: ${ach.threshold}`;
-                list.appendChild(li);
-            });
-        } catch (err) {
-            showMessage(err.message, 'error');
-        }
-    });
-}
-
-const claimAchievementBtn = document.getElementById('claimAchievementBtn');
-if (claimAchievementBtn) {
-    claimAchievementBtn.addEventListener('click', async () => {
-        const id = Number(document.getElementById('claimAchievementId')?.value);
-        if (!id) return;
-        try {
-            await apiRequest(`/achievements/${id}/claim`, {method: 'POST'});
-            showMessage('Galardón asignado');
-            const input = document.getElementById('claimAchievementId');
-            if (input) input.value = '';
-        } catch (err) {
-            showMessage(err.message, 'error');
-        }
-    });
-}
-
 // Cargar datos iniciales específicos
-if (state.token) {
-    if (document.getElementById('beerList')) {
-        loadBeers();
+if (document.getElementById('beerList') || document.getElementById('tastingBeerInput') || document.getElementById('filterBeerInput')) {
+    loadBeers();
+}
+
+if (document.getElementById('tastingList')) {
+    loadMyTastings();
+}
+
+if (document.getElementById('profileCard') && state.token) {
+    fetchProfile();
+}
+
+if (document.getElementById('menuCard')) {
+    loadMenu();
+}
+
+if (document.getElementById('achievementList')) {
+    loadAchievements();
+}
+
+async function fetchProfile() {
+    try {
+        const profile = await apiRequest('/users/me');
+        renderProfileCard(profile);
+    } catch (err) {
+        showMessage(err.message, 'error');
     }
 }
 
@@ -425,10 +755,6 @@ function renderProfileCard(profile) {
     const card = document.getElementById('profileCard');
     if (!card) return;
     card.classList.remove('hidden');
-    const setText = (id, text = '') => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = text ?? '';
-    };
     setText('profileDisplayName', profile.displayName);
     setText('profileUsername', `@${profile.username}`);
     setText('profileEmail', profile.email);
@@ -453,4 +779,89 @@ function renderProfileCard(profile) {
             photo.style.display = 'none';
         }
     }
+}
+
+async function loadMenu() {
+    if (!document.getElementById('menuCard')) return;
+    try {
+        const data = await apiRequest('/menu');
+        renderMenu(data);
+    } catch (err) {
+        showMessage(err.message, 'error');
+    }
+}
+
+function renderMenu(menu) {
+    setText('menuVerified', menu.emailVerified ? 'Sí' : 'No');
+    setText('menuProfile', menu.profileCompleted ? 'Completo' : 'Incompleto');
+    setText('menuBeer', menu.canCreateBeer ? 'Sí' : 'No');
+    setText('menuTasting', menu.canCreateTasting ? 'Sí' : 'No');
+    const list = document.getElementById('menuActions');
+    if (list) {
+        list.innerHTML = '';
+        (menu.availableActions || []).forEach(action => {
+            const li = document.createElement('li');
+            li.textContent = action;
+            list.appendChild(li);
+        });
+    }
+}
+
+async function loadAchievements() {
+    const list = document.getElementById('achievementList');
+    if (!list) return;
+    try {
+        const all = await apiRequest('/achievements');
+        let mine = [];
+        try {
+            mine = await apiRequest('/achievements/user');
+        } catch (_) {
+            mine = [];
+        }
+        const unlockedIds = new Set((mine || []).map(a => a.achievementId));
+        list.innerHTML = '';
+        all.forEach(ach => {
+            const unlocked = unlockedIds.has(ach.id);
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${ach.id} - ${ach.name}</strong><br>
+                Nivel: ${ach.level} · Umbral: ${ach.threshold} [${unlocked ? 'Desbloqueado' : 'Bloqueado'}]`;
+            list.appendChild(li);
+        });
+    } catch (err) {
+        showMessage(err.message, 'error');
+    }
+}
+
+function openRateModal(beerId, beerName) {
+    const hidden = document.getElementById('ratingBeerId');
+    if (hidden) hidden.value = beerId;
+    setText('ratingSelectedBeer', `${beerName} (#${beerId})`);
+    openModal(rateBeerModal);
+}
+
+function isAdult(dateStr) {
+    const birth = new Date(dateStr);
+    const today = new Date();
+    const age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    const effectiveAge = m < 0 || (m === 0 && today.getDate() < birth.getDate()) ? age - 1 : age;
+    return effectiveAge >= 18;
+}
+
+function setText(id, text = '') {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text ?? '';
+}
+const tastingBeerInput = document.getElementById('tastingBeerInput');
+const tastingBeerDropdown = document.getElementById('tastingBeerDropdown');
+const tastingBeerIdInput = document.getElementById('tastingBeerId');
+if (tastingBeerInput && tastingBeerDropdown && tastingBeerIdInput) {
+    tastingBeerInput.addEventListener('input', () => renderBeerDropdown(tastingBeerInput, tastingBeerDropdown, tastingBeerIdInput));
+}
+
+const filterBeerInput = document.getElementById('filterBeerInput');
+const filterBeerDropdown = document.getElementById('filterBeerDropdown');
+const filterBeerIdInput = document.getElementById('filterBeerId');
+if (filterBeerInput && filterBeerDropdown && filterBeerIdInput) {
+    filterBeerInput.addEventListener('input', () => renderBeerDropdown(filterBeerInput, filterBeerDropdown, filterBeerIdInput));
 }

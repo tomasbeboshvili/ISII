@@ -2,7 +2,10 @@ package es.upm.cervezas.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
 
 import es.upm.cervezas.api.dto.TastingRequest;
@@ -11,6 +14,7 @@ import es.upm.cervezas.domain.Tasting;
 import es.upm.cervezas.domain.User;
 import es.upm.cervezas.repository.BeerRepository;
 import es.upm.cervezas.repository.TastingRepository;
+import es.upm.cervezas.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,12 +36,14 @@ class TastingServiceTest {
     private UserProfileService userProfileService;
     @Mock
     private AchievementService achievementService;
+    @Mock
+    private UserRepository userRepository;
 
     private TastingService service;
 
     @BeforeEach
     void setUp() {
-        service = new TastingService(tastingRepository, beerRepository, userProfileService, achievementService);
+        service = new TastingService(tastingRepository, beerRepository, userProfileService, achievementService, userRepository);
     }
 
     @Test
@@ -49,6 +55,7 @@ class TastingServiceTest {
         when(userProfileService.requireUser("token")).thenReturn(user);
         when(beerRepository.findById(2L)).thenReturn(Optional.of(beer));
         when(tastingRepository.save(any(Tasting.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(tastingRepository.countByUserId(user.getId())).thenReturn(1L);
 
         var request = new TastingRequest(2L, LocalDateTime.now(), "Madrid", "Notas", 4, 5, 4);
         var response = service.create("token", request);
@@ -59,6 +66,8 @@ class TastingServiceTest {
         assertThat(captor.getValue().getUser()).isEqualTo(user);
         assertThat(response.beerId()).isEqualTo(2L);
         verify(achievementService).refreshProgress(user);
+        verify(achievementService).checkMilestone(eq(user), eq("TASTINGS"), anyInt());
+        verify(userRepository).save(user);
     }
 
     @Test

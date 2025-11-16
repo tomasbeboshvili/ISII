@@ -77,6 +77,9 @@ public class User {
     private int gamificationPoints;
 
     private Long currentAchievementId;
+    private int beersCreatedCount = 0;
+    private int tastingsCount = 0;
+    private int ratingsCount = 0;
 
     @PrePersist
     public void onCreate() {
@@ -311,5 +314,29 @@ public class User {
 
     public void setCurrentAchievementId(Long currentAchievementId) {
         this.currentAchievementId = currentAchievementId;
+    }
+
+    public int getBeersCreatedCount() {
+        return beersCreatedCount;
+    }
+
+    public void setBeersCreatedCount(int beersCreatedCount) {
+        this.beersCreatedCount = beersCreatedCount;
+    }
+
+    public int getTastingsCount() {
+        return tastingsCount;
+    }
+
+    public void setTastingsCount(int tastingsCount) {
+        this.tastingsCount = tastingsCount;
+    }
+
+    public int getRatingsCount() {
+        return ratingsCount;
+    }
+
+    public void setRatingsCount(int ratingsCount) {
+        this.ratingsCount = ratingsCount;
     }
 }

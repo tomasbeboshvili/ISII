@@ -8,6 +8,7 @@ import es.upm.cervezas.domain.BeerRating;
 import es.upm.cervezas.domain.User;
 import es.upm.cervezas.repository.BeerRatingRepository;
 import es.upm.cervezas.repository.BeerRepository;
+import es.upm.cervezas.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.util.List;
@@ -17,6 +18,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Servicio principal para gestionar el ciclo de vida de las cervezas (alta, listado, valoración
+ * y borrado). Además mantiene los contadores por usuario y dispara los galardones asociados.
+ */
 @Service
 public class BeerService {
 
@@ -24,17 +29,20 @@ public class BeerService {
     private final BeerRatingRepository beerRatingRepository;
     private final UserProfileService userProfileService;
     private final AchievementService achievementService;
+    private final UserRepository userRepository;
 
     private static final Logger log = LoggerFactory.getLogger(BeerService.class);
 
     public BeerService(BeerRepository beerRepository,
                        BeerRatingRepository beerRatingRepository,
                        UserProfileService userProfileService,
-                       AchievementService achievementService) {
+                       AchievementService achievementService,
+                       UserRepository userRepository) {
         this.beerRepository = beerRepository;
         this.beerRatingRepository = beerRatingRepository;
         this.userProfileService = userProfileService;
         this.achievementService = achievementService;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -54,17 +62,21 @@ public class BeerService {
         beerRepository.save(beer);
         log.info("Cerveza {} creada por usuario {}", beer.getName(), user.getId());
         user.setGamificationPoints(user.getGamificationPoints() + 15);
+        user.setBeersCreatedCount((int) beerRepository.countByCreatedById(user.getId()));
+        userRepository.save(user);
         achievementService.refreshProgress(user);
+        achievementService.checkMilestone(user, "BEERS_CREATED", user.getBeersCreatedCount());
         return toResponse(beer);
     }
 
     @Transactional(readOnly = true)
     public List<BeerResponse> getAllBeers() {
-        log.debug("Obteniendo listado completo de cervezas");
-        return beerRepository.findAll()
+        List<BeerResponse> beers = beerRepository.findAll()
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+        log.info("Listado de cervezas actualizado: {} elementos", beers.size());
+        return beers;
     }
 
     @Transactional(readOnly = true)
@@ -91,10 +103,28 @@ public class BeerService {
         rating.setCreatedAt(Instant.now());
 
         beerRatingRepository.save(rating);
-        log.info("Valoración registrada para cerveza {} por usuario {}", beer.getId(), user.getId());
+        log.info("Valoración registrada para cerveza {} (puntuación {}) por usuario {}", beer.getId(), request.score(), user.getId());
         user.setGamificationPoints(user.getGamificationPoints() + 5);
+        user.setRatingsCount((int) beerRatingRepository.countByUserId(user.getId()));
+        userRepository.save(user);
         achievementService.refreshProgress(user);
+        achievementService.checkMilestone(user, "RATINGS", user.getRatingsCount());
         return toResponse(beer);
+    }
+
+    /**
+     * Elimina la cerveza indicada (y sus valoraciones asociadas) siempre que el token sea válido.
+     */
+    @Transactional
+    public void deleteBeer(String token, Long beerId) {
+        User user = userProfileService.requireUser(token);
+        Beer beer = beerRepository.findById(beerId)
+                .orElseThrow(() -> new EntityNotFoundException("Cerveza no encontrada"));
+        beerRatingRepository.deleteByBeerId(beerId);
+        beerRepository.delete(beer);
+        log.info("Cerveza {} eliminada por usuario {}", beerId, user.getId());
+        user.setBeersCreatedCount((int) beerRepository.countByCreatedById(user.getId()));
+        userRepository.save(user);
     }
 
     private BeerResponse toResponse(Beer beer) {
@@ -110,7 +140,7 @@ public class BeerService {
                 beer.getIbu(),
                 beer.getDescription(),
                 beer.getCreatedAt(),
-                avg != null ? Math.round(avg * 10d) / 10d : null,
+                avg,
                 count
         );
     }

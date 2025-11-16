@@ -15,6 +15,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controlador REST para registrar degustaciones propias y consultar las propias
+ * o las asociadas a una determinada cerveza.
+ */
 @RestController
 @RequestMapping("/api/tastings")
 public class TastingController {

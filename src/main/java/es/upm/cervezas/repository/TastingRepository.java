@@ -8,4 +8,6 @@ public interface TastingRepository extends JpaRepository<Tasting, Long> {
     List<Tasting> findByUserId(Long userId);
 
     List<Tasting> findByBeerId(Long beerId);
+
+    long countByUserId(Long userId);
 }

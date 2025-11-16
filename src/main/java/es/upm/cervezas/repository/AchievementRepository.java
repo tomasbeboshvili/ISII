@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AchievementRepository extends JpaRepository<Achievement, Long> {
     Optional<Achievement> findFirstByThresholdLessThanEqualOrderByThresholdDesc(int points);
+
+    Optional<Achievement> findFirstByCriteriaAndThresholdLessThanEqualOrderByThresholdDesc(String criteria, int threshold);
 }

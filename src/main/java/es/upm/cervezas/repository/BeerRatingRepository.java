@@ -15,4 +15,8 @@ public interface BeerRatingRepository extends JpaRepository<BeerRating, Long> {
     Double findAverageScoreByBeerId(Long beerId);
 
     long countByBeerId(Long beerId);
+
+    void deleteByBeerId(Long beerId);
+
+    long countByUserId(Long userId);
 }

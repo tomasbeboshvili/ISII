@@ -3,9 +3,12 @@ package es.upm.cervezas.service;
 import es.upm.cervezas.api.dto.AchievementClaimResponse;
 import es.upm.cervezas.api.dto.AchievementRequest;
 import es.upm.cervezas.api.dto.AchievementResponse;
+import es.upm.cervezas.api.dto.UserAchievementResponse;
 import es.upm.cervezas.domain.Achievement;
 import es.upm.cervezas.domain.User;
+import es.upm.cervezas.domain.UserAchievement;
 import es.upm.cervezas.repository.AchievementRepository;
+import es.upm.cervezas.repository.UserAchievementRepository;
 import es.upm.cervezas.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -15,20 +18,28 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Servicio que administra la definición de galardones y los logros obtenidos por cada usuario.
+ * Permite crear logros, listarlos, reclamarlos manualmente y asignarlos automáticamente cuando
+ * se cumplen los hitos configurados (criterios/threshold).
+ */
 @Service
 public class AchievementService {
 
     private final AchievementRepository achievementRepository;
     private final TokenAuthenticationService tokenAuthenticationService;
     private final UserRepository userRepository;
+    private final UserAchievementRepository userAchievementRepository;
     private static final Logger log = LoggerFactory.getLogger(AchievementService.class);
 
     public AchievementService(AchievementRepository achievementRepository,
                               TokenAuthenticationService tokenAuthenticationService,
-                              UserRepository userRepository) {
+                              UserRepository userRepository,
+                              UserAchievementRepository userAchievementRepository) {
         this.achievementRepository = achievementRepository;
         this.tokenAuthenticationService = tokenAuthenticationService;
         this.userRepository = userRepository;
+        this.userAchievementRepository = userAchievementRepository;
     }
 
     @Transactional
@@ -64,6 +75,7 @@ public class AchievementService {
         Achievement achievement = achievementRepository.findById(achievementId)
                 .orElseThrow(() -> new EntityNotFoundException("Galardón no encontrado"));
 
+        assignAchievement(user, achievement);
         user.setCurrentAchievementId(achievement.getId());
         user.setBadgeLevel(achievement.getLevel());
         userRepository.save(user);
@@ -80,7 +92,43 @@ public class AchievementService {
                     user.setBadgeLevel(achievement.getLevel());
                     userRepository.save(user);
                     log.debug("Progreso actualizado: usuario {} ahora tiene galardón {}", user.getId(), achievement.getId());
+                    assignAchievement(user, achievement);
                 });
+    }
+
+    @Transactional
+    public void checkMilestone(User user, String criteria, int currentValue) {
+        achievementRepository.findFirstByCriteriaAndThresholdLessThanEqualOrderByThresholdDesc(criteria, currentValue)
+                .ifPresent(achievement -> assignAchievement(user, achievement));
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserAchievementResponse> getForCurrentUser(String token) {
+        User user = tokenAuthenticationService.findUserByToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Token inválido o caducado"));
+        return userAchievementRepository.findByUserId(user.getId()).stream()
+                .map(ua -> new UserAchievementResponse(
+                        ua.getAchievement().getId(),
+                        ua.getAchievement().getName(),
+                        ua.getAchievement().getCriteria(),
+                        ua.getAchievement().getThreshold(),
+                        ua.getAwardedAt()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Registra que un usuario ha obtenido un galardón determinado, evitando duplicados.
+     */
+    private void assignAchievement(User user, Achievement achievement) {
+        if (userAchievementRepository.existsByUserIdAndAchievementId(user.getId(), achievement.getId())) {
+            return;
+        }
+        UserAchievement userAchievement = new UserAchievement();
+        userAchievement.setUser(user);
+        userAchievement.setAchievement(achievement);
+        userAchievementRepository.save(userAchievement);
+        log.info("Usuario {} ganó el galardón {}", user.getId(), achievement.getName());
     }
 
     private AchievementResponse toResponse(Achievement achievement) {
