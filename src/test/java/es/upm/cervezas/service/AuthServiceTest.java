@@ -55,12 +55,13 @@ class AuthServiceTest {
                 "Tester",
                 "Nombre",
                 "Apellidos",
-                null,
+                "Intro",
+                "Prefiero no decirlo",
+                "secret",
                 "secret",
                 LocalDate.now().minusYears(20),
                 "Madrid",
-                "España",
-                "Bio"
+                "España"
         );
         when(userRepository.existsByEmailIgnoreCase(request.email())).thenReturn(false);
         when(userRepository.existsByUsernameIgnoreCase(request.username())).thenReturn(false);
@@ -74,7 +75,6 @@ class AuthServiceTest {
         User saved = captor.getValue();
         assertThat(saved.getEmail()).isEqualTo("test@example.com");
         assertThat(saved.isActivated()).isTrue();
-        assertThat(saved.getActivationToken()).isNull();
         assertThat(saved.getPasswordHash()).isEqualTo("encoded");
         assertThat(response.activated()).isTrue();
         verify(ageVerificationService).verifyOrThrow(request.birthDate());

@@ -19,7 +19,7 @@ Backend Spring Boot que cubre los requisitos funcionales del Ciclo 1 (RQ1-RQ8, R
 
 ## Modelos principales
 
-- `User` (ILF Usuario): datos personales ampliados (nombre, apellidos, país, bio, intro, puntos de gamificación y galardón actual) y campos de control (tokens de recuperación, contador de logros).
+- `User` (ILF Usuario): datos personales ampliados (nombre, apellidos, foto, origen, intro, ubicación, género, país, bio, puntos de gamificación y galardón actual) y campos de control (tokens de recuperación, contador de logros).
 - `Beer` (ILF Cerveza): estilos, origen, creador y métricas.
 - `Tasting` (ILF Degustación): notas y puntuaciones organolépticas.
 - `Achievement` (ILF Galardones): definición del galardón, niveles, criterios y umbrales de desbloqueo.

@@ -31,6 +31,7 @@
             <div>
                 <h2>Datos almacenados</h2>
                 <div id="profileCard" class="profile-card hidden">
+                    <img id="profilePhoto" alt="Foto de perfil">
                     <h3 id="profileDisplayName"></h3>
                     <p id="profileUsername" class="muted"></p>
                     <p id="profileEmail" class="muted"></p>
@@ -38,6 +39,9 @@
                     <ul>
                         <li><strong>Nombre:</strong> <span id="profileFirstName"></span></li>
                         <li><strong>Apellidos:</strong> <span id="profileLastName"></span></li>
+                        <li><strong>Origen:</strong> <span id="profileOrigin"></span></li>
+                        <li><strong>Ubicación:</strong> <span id="profileLocation"></span></li>
+                        <li><strong>Género:</strong> <span id="profileGender"></span></li>
                         <li><strong>Ciudad:</strong> <span id="profileCity"></span></li>
                         <li><strong>País:</strong> <span id="profileCountry"></span></li>
                         <li><strong>Fecha nacimiento:</strong> <span id="profileBirthDate"></span></li>
@@ -55,7 +59,17 @@
                     <label>Nombre visible <input type="text" name="displayName"></label>
                     <label>Nombre <input type="text" name="firstName"></label>
                     <label>Apellidos <input type="text" name="lastName"></label>
+                    <label>Foto (URL) <input type="text" name="photoUrl"></label>
+                    <label>Origen <input type="text" name="origin"></label>
                     <label>Intro <textarea name="intro"></textarea></label>
+                    <label>Ubicación <input type="text" name="location"></label>
+                    <label>Género
+                        <select name="gender">
+                            <option value="Masculino">Masculino</option>
+                            <option value="Femenino">Femenino</option>
+                            <option value="Prefiero no decirlo" selected>Prefiero no decirlo</option>
+                        </select>
+                    </label>
                     <label>Ciudad <input type="text" name="city"></label>
                     <label>País <input type="text" name="country"></label>
                     <label>Bio <textarea name="bio"></textarea></label>

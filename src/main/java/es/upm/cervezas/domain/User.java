@@ -38,6 +38,15 @@ public class User {
     @Column(length = 500)
     private String intro;
 
+    private String photoUrl;
+
+    private String origin;
+
+    private String location;
+
+    @Column(length = 30)
+    private String gender;
+
     @Column(nullable = false)
     private LocalDate birthDate;
 
@@ -53,10 +62,6 @@ public class User {
     private Instant createdAt;
 
     private Instant updatedAt;
-
-    private String activationToken;
-
-    private Instant activationTokenCreatedAt;
 
     private String passwordResetToken;
 
@@ -76,10 +81,6 @@ public class User {
         Instant now = Instant.now();
         this.createdAt = now;
         this.updatedAt = now;
-        if (activated) {
-            this.activationToken = null;
-            this.activationTokenCreatedAt = null;
-        }
         if (this.badgeLevel == null) {
             this.badgeLevel = 0;
         }
@@ -154,6 +155,38 @@ public class User {
         this.intro = intro;
     }
 
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+
+    public String getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
     public LocalDate getBirthDate() {
         return birthDate;
     }
@@ -208,22 +241,6 @@ public class User {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public String getActivationToken() {
-        return activationToken;
-    }
-
-    public void setActivationToken(String activationToken) {
-        this.activationToken = activationToken;
-    }
-
-    public Instant getActivationTokenCreatedAt() {
-        return activationTokenCreatedAt;
-    }
-
-    public void setActivationTokenCreatedAt(Instant activationTokenCreatedAt) {
-        this.activationTokenCreatedAt = activationTokenCreatedAt;
     }
 
     public String getPasswordResetToken() {

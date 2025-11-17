@@ -17,7 +17,6 @@ const createBeerModal = document.getElementById('createBeerModal');
 const rateBeerModal = document.getElementById('rateBeerModal');
 const createTastingModal = document.getElementById('createTastingModal');
 const filterTastingModal = document.getElementById('filterTastingModal');
-const claimAchievementModal = document.getElementById('claimAchievementModal');
 
 function setToken(token) {
     state.token = token;
@@ -371,30 +370,6 @@ if (refreshMenuBtn) {
     refreshMenuBtn.addEventListener('click', loadMenu);
 }
 
-const openClaimAchievementBtn = document.getElementById('openClaimAchievementBtn');
-if (openClaimAchievementBtn) {
-    openClaimAchievementBtn.addEventListener('click', () => openModal(claimAchievementModal));
-}
-
-const claimAchievementForm = document.getElementById('claimAchievementForm');
-if (claimAchievementForm) {
-    claimAchievementForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = Number(document.getElementById('claimAchievementId')?.value);
-        if (!id) {
-            showMessage('Introduce un ID de galardón válido.', 'error');
-            return;
-        }
-        try {
-            await apiRequest(`/achievements/${id}/claim`, {method: 'POST'});
-            showMessage('Galardón asignado');
-            claimAchievementForm.reset();
-            closeModal(claimAchievementModal);
-        } catch (err) {
-            showMessage(err.message, 'error');
-        }
-    });
-}
 const tastingSearchInput = document.getElementById('tastingSearchInput');
 if (tastingSearchInput) {
     tastingSearchInput.addEventListener('input', renderTastingCatalog);
@@ -735,12 +710,24 @@ function renderProfileCard(profile) {
     setText('profileIntro', profile.intro);
     setText('profileFirstName', profile.firstName);
     setText('profileLastName', profile.lastName);
+    setText('profileOrigin', profile.origin);
+    setText('profileLocation', profile.location);
+    setText('profileGender', profile.gender || 'Prefiero no decirlo');
     setText('profileCity', profile.city);
     setText('profileCountry', profile.country);
     setText('profileBirthDate', profile.birthDate ?? '');
     setText('profileBio', profile.bio);
     setText('profilePoints', profile.gamificationPoints);
     setText('profileAchievement', profile.currentAchievementId ?? 'N/A');
+    const photo = document.getElementById('profilePhoto');
+    if (photo) {
+        if (profile.photoUrl) {
+            photo.src = profile.photoUrl;
+            photo.style.display = 'block';
+        } else {
+            photo.style.display = 'none';
+        }
+    }
 }
 
 async function loadMenu() {

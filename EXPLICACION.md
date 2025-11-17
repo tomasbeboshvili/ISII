@@ -28,7 +28,7 @@ Total PF del ciclo: aprox. 63 PF, alineados con el plan presentado (aunque 4 PF 
 ## 2. Modelos y persistencia
 
 ### 2.1 Usuario (`User`)
-- Atributos: email, `username`, nombre, apellidos, intro, ciudad, país, bio.
+- Atributos: email, `username`, nombre, apellidos, foto, origen, intro, ubicación, género, ciudad, país, bio.
 - Datos de control: `activated`, tokens de recuperación de contraseña y timestamps de control.
 - Gamificación: `gamificationPoints`, `badgeLevel`, `currentAchievementId`.
 - JPA: tabla `users`, timestamps gestionados con `@PrePersist/@PreUpdate`.

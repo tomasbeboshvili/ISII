@@ -67,6 +67,9 @@ public class AuthService {
         }
 
         log.info("Registrando nuevo usuario {}", request.email());
+        if (!request.password().equals(request.confirmPassword())) {
+            throw new IllegalArgumentException("Las contraseñas no coinciden");
+        }
         ageVerificationService.verifyOrThrow(request.birthDate());
 
         User user = new User();
@@ -76,14 +79,12 @@ public class AuthService {
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
         user.setIntro(request.intro());
+        user.setGender(request.gender() != null ? request.gender() : "Prefiero no decirlo");
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setBirthDate(request.birthDate());
         user.setCity(request.city());
         user.setCountry(request.country());
-        user.setBio(request.bio());
         user.setActivated(true);
-        user.setActivationToken(null);
-        user.setActivationTokenCreatedAt(null);
 
         userRepository.save(user);
         log.debug("Usuario {} registrado y activado automáticamente", user.getId());

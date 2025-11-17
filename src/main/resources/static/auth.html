@@ -67,11 +67,18 @@
                     <label>Usuario <input type="text" name="username" required></label>
                     <label>Nombre <input type="text" name="firstName" required></label>
                     <label>Apellidos <input type="text" name="lastName" required></label>
+                    <label>Género
+                        <select name="gender">
+                            <option value="Masculino">Masculino</option>
+                            <option value="Femenino">Femenino</option>
+                            <option value="Prefiero no decirlo" selected>Prefiero no decirlo</option>
+                        </select>
+                    </label>
                     <label>Fecha nacimiento <input type="date" name="birthDate" required></label>
                     <label>Ciudad <input type="text" name="city"></label>
                     <label>País <input type="text" name="country"></label>
-                    <label>Bio <textarea name="bio"></textarea></label>
                     <label>Contraseña <input type="password" name="password" required></label>
+                    <label>Confirmar contraseña <input type="password" name="confirmPassword" required></label>
                     <button type="submit">Registrar</button>
                     <small>Tu cuenta queda lista para usar al instante.</small>
                 </form>

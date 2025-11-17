@@ -47,8 +47,20 @@ public class UserProfileService {
         if (request.lastName() != null) {
             user.setLastName(request.lastName());
         }
+        if (request.photoUrl() != null) {
+            user.setPhotoUrl(request.photoUrl());
+        }
+        if (request.origin() != null) {
+            user.setOrigin(request.origin());
+        }
         if (request.intro() != null) {
             user.setIntro(request.intro());
+        }
+        if (request.location() != null) {
+            user.setLocation(request.location());
+        }
+        if (request.gender() != null) {
+            user.setGender(request.gender());
         }
         if (request.city() != null) {
             user.setCity(request.city());
@@ -59,6 +71,8 @@ public class UserProfileService {
         if (request.bio() != null) {
             user.setBio(request.bio());
         }
+        // persist changes so the userRepository field is used
+        userRepository.save(user);
         log.info("Perfil actualizado para usuario {}", user.getId());
         return toResponse(user);
     }
@@ -71,7 +85,11 @@ public class UserProfileService {
                 user.getDisplayName(),
                 user.getFirstName(),
                 user.getLastName(),
+                user.getPhotoUrl(),
+                user.getOrigin(),
                 user.getIntro(),
+                user.getLocation(),
+                user.getGender(),
                 user.getBirthDate(),
                 user.getCity(),
                 user.getCountry(),
