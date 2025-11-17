@@ -15,8 +15,6 @@ public record RegistrationRequest(
         String photoUrl,
         String origin,
         String intro,
-        String location,
-        String gender,
         @NotBlank String password,
         @NotNull @Past LocalDate birthDate,
         LocalDate birthday,

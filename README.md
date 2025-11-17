@@ -19,7 +19,7 @@ Backend Spring Boot que cubre los requisitos funcionales del Ciclo 1 (RQ1-RQ8, R
 
 ## Modelos principales
 
-- `User` (ILF Usuario): datos personales ampliados (nombre, apellidos, foto, género, país, bio, intro, ubicación, puntos de gamificación y galardón actual) y estado de activación/tokens.
+- `User` (ILF Usuario): datos personales ampliados (nombre, apellidos, foto, país, bio, intro, puntos de gamificación y galardón actual) y campos de control (tokens de recuperación, contador de logros).
 - `Beer` (ILF Cerveza): estilos, origen, creador y métricas.
 - `Tasting` (ILF Degustación): notas y puntuaciones organolépticas.
 - `Achievement` (ILF Galardones): definición del galardón, niveles, criterios y umbrales de desbloqueo.
@@ -29,10 +29,9 @@ Backend Spring Boot que cubre los requisitos funcionales del Ciclo 1 (RQ1-RQ8, R
 ## Servicios expuestos
 
 ### Autenticación (`/api/auth`)
-- `POST /register`: crea cuenta (verifica edad y unicidad de email) y envía un código de activación al correo simulado.
+- `POST /register`: crea cuenta (verifica edad y unicidad de email), activa automáticamente y envía un correo de bienvenida simulado.
 - `POST /login`: devuelve token de sesión y lo persiste en `session_tokens`.
 - `POST /logout`: invalida token.
-- `POST /activate`: activa la cuenta usando el código recibido.
 - `POST /password/recover`: genera un código único y lo envía por correo simulado.
 - `POST /password/reset`: restablece contraseña introduciendo el código recibido.
 
@@ -87,6 +86,6 @@ Se añadieron pruebas unitarias con Mockito/JUnit para todos los servicios clave
 - `achievements.html`: panel del menú contextual y galardones con botón de refresco y modal para reclamar logros. También lista los logros automáticos (degustar X, valorar X, añadir X) ya desbloqueados.
 - `app.js`: gestiona peticiones `fetch` hacia los endpoints REST, guarda el token en `localStorage` y añade listeners solo donde corresponda.
 - `styles.css`: estilo básico responsive compartido.
-- `EmailService`: servicio auxiliar que simula los correos de activación/recuperación registrándolos en los logs.
+- `EmailService`: servicio auxiliar que simula los correos de bienvenida y recuperación registrándolos en los logs.
 
 Arranca con `./mvnw spring-boot:run` y visita `http://localhost:8080/` para acceder a cada página. El token de sesión se comparte automáticamente entre vistas mediante `localStorage`.

@@ -7,7 +7,6 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import es.upm.cervezas.api.dto.ActivationRequest;
 import es.upm.cervezas.api.dto.LoginRequest;
 import es.upm.cervezas.api.dto.PasswordRecoveryRequest;
 import es.upm.cervezas.api.dto.PasswordResetRequest;
@@ -19,7 +18,6 @@ import es.upm.cervezas.repository.UserRepository;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,15 +48,13 @@ class AuthServiceTest {
     }
 
     @Test
-    void registerCreatesPendingUser() {
+    void registerCreatesActiveUser() {
         RegistrationRequest request = new RegistrationRequest(
                 "test@example.com",
                 "tester",
                 "Tester",
                 "Nombre",
                 "Apellidos",
-                null,
-                null,
                 null,
                 null,
                 null,
@@ -80,24 +76,18 @@ class AuthServiceTest {
         verify(userRepository).save(captor.capture());
         User saved = captor.getValue();
         assertThat(saved.getEmail()).isEqualTo("test@example.com");
-        assertThat(saved.isActivated()).isFalse();
-        assertThat(saved.getActivationToken()).isNotBlank();
+        assertThat(saved.isActivated()).isTrue();
+        assertThat(saved.getActivationToken()).isNull();
         assertThat(saved.getPasswordHash()).isEqualTo("encoded");
-        assertThat(response.activationToken()).isEqualTo(saved.getActivationToken());
+        assertThat(response.activated()).isTrue();
         verify(ageVerificationService).verifyOrThrow(request.birthDate());
         verify(emailService).send(eq("test@example.com"), any(), any());
     }
 
     @Test
-    void activateMarksUser() {
-        User user = new User();
-        user.setActivationToken("token");
-        when(userRepository.findByActivationToken("token")).thenReturn(Optional.of(user));
-
-        authService.activate(new ActivationRequest("token"));
-
-        assertThat(user.isActivated()).isTrue();
-        assertThat(user.getActivationToken()).isNull();
+    void activateEndpointIsNoOp() {
+        var response = authService.activate();
+        assertThat(response.message()).contains("no es necesaria");
     }
 
     @Test

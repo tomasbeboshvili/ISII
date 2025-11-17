@@ -42,10 +42,6 @@ public class User {
     @Column(length = 500)
     private String intro;
 
-    private String location;
-
-    private String gender;
-
     @Column(nullable = false)
     private LocalDate birthDate;
 
@@ -178,22 +174,6 @@ public class User {
 
     public void setIntro(String intro) {
         this.intro = intro;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
     }
 
     public LocalDate getBirthDate() {

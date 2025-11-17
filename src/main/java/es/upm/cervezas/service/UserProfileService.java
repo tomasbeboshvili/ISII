@@ -56,12 +56,6 @@ public class UserProfileService {
         if (request.intro() != null) {
             user.setIntro(request.intro());
         }
-        if (request.location() != null) {
-            user.setLocation(request.location());
-        }
-        if (request.gender() != null) {
-            user.setGender(request.gender());
-        }
         if (request.birthday() != null) {
             user.setBirthday(request.birthday());
         }
@@ -89,8 +83,6 @@ public class UserProfileService {
                 user.getPhotoUrl(),
                 user.getOrigin(),
                 user.getIntro(),
-                user.getLocation(),
-                user.getGender(),
                 user.getBirthDate(),
                 user.getBirthday(),
                 user.getCity(),
@@ -101,7 +93,10 @@ public class UserProfileService {
                 user.getCurrentAchievementId(),
                 user.isActivated(),
                 user.getCreatedAt(),
-                user.getUpdatedAt()
+                user.getUpdatedAt(),
+                user.getBeersCreatedCount(),
+                user.getTastingsCount(),
+                user.getRatingsCount()
         );
     }
 }

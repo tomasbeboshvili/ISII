@@ -1,6 +1,5 @@
 package es.upm.cervezas.api.controller;
 
-import es.upm.cervezas.api.dto.ActivationRequest;
 import es.upm.cervezas.api.dto.ActivationResponse;
 import es.upm.cervezas.api.dto.LoginRequest;
 import es.upm.cervezas.api.dto.LoginResponse;
@@ -43,9 +42,9 @@ public class AuthController {
     }
 
     @PostMapping("/activate")
-    public ActivationResponse activate(@Valid @RequestBody ActivationRequest request) {
-        log.info("Solicitud de activación recibida");
-        return authService.activate(request);
+    public ActivationResponse activate() {
+        log.info("Solicitud de activación recibida (modo compatibilidad)");
+        return authService.activate();
     }
 
     @PostMapping("/login")

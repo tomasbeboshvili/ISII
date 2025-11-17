@@ -11,8 +11,6 @@ public record UserProfileUpdateRequest(
         @Size(max = 500) String photoUrl,
         String origin,
         @Size(max = 500) String intro,
-        String location,
-        String gender,
         LocalDate birthday,
         String city,
         String country,

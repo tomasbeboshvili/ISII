@@ -13,8 +13,6 @@ public record UserProfileResponse(
         String photoUrl,
         String origin,
         String intro,
-        String location,
-        String gender,
         LocalDate birthDate,
         LocalDate birthday,
         String city,
@@ -25,6 +23,9 @@ public record UserProfileResponse(
         Long currentAchievementId,
         boolean activated,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        int beersCreatedCount,
+        int tastingsCount,
+        int ratingsCount
 ) {
 }

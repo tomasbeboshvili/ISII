@@ -184,28 +184,6 @@ if (resetForm) {
         }
     });
 }
-const activateBtn = document.getElementById('activateBtn');
-if (activateBtn) {
-    activateBtn.addEventListener('click', async () => {
-        const tokenField = document.getElementById('activationToken');
-        const tokenValue = tokenField?.value.trim();
-        if (!tokenValue) {
-            showMessage('Introduce el código de activación.', 'error');
-            return;
-        }
-        try {
-            await apiRequest('/auth/activate', {
-                method: 'POST',
-                body: JSON.stringify({token: tokenValue})
-            });
-            showMessage('Cuenta activada correctamente.');
-            if (tokenField) tokenField.value = '';
-        } catch (err) {
-            showMessage(err.message, 'error');
-        }
-    });
-}
-
 // Perfil
 const profileForm = document.getElementById('profileForm');
 if (profileForm) {
@@ -763,8 +741,6 @@ function renderProfileCard(profile) {
     setText('profileLastName', profile.lastName);
     setText('profileCity', profile.city);
     setText('profileCountry', profile.country);
-    setText('profileLocation', profile.location);
-    setText('profileGender', profile.gender);
     setText('profileBirthday', profile.birthday ?? '');
     setText('profileBio', profile.bio);
     setText('profilePoints', profile.gamificationPoints);
@@ -808,24 +784,47 @@ function renderMenu(menu) {
 }
 
 async function loadAchievements() {
-    const list = document.getElementById('achievementList');
-    if (!list) return;
+    const container = document.getElementById('achievementList');
+    if (!container) return;
+    if (!state.token) {
+        container.innerHTML = '<p class="muted">Inicia sesión para ver tus logros personales.</p>';
+        return;
+    }
     try {
         const all = await apiRequest('/achievements');
-        let mine = [];
-        try {
-            mine = await apiRequest('/achievements/user');
-        } catch (_) {
-            mine = [];
-        }
+        const mine = await apiRequest('/achievements/user');
+        const profile = await apiRequest('/users/me');
         const unlockedIds = new Set((mine || []).map(a => a.achievementId));
-        list.innerHTML = '';
+        const snapshot = buildAchievementSnapshot(profile);
+        container.innerHTML = '';
         all.forEach(ach => {
-            const unlocked = unlockedIds.has(ach.id);
-            const li = document.createElement('li');
-            li.innerHTML = `<strong>${ach.id} - ${ach.name}</strong><br>
-                Nivel: ${ach.level} · Umbral: ${ach.threshold} [${unlocked ? 'Desbloqueado' : 'Bloqueado'}]`;
-            list.appendChild(li);
+            const alreadyClaimed = unlockedIds.has(ach.id);
+            const details = describeAchievement(ach, snapshot);
+            const percent = details.threshold > 0
+                ? Math.min(100, Math.round((details.currentValue / details.threshold) * 100))
+                : (alreadyClaimed ? 100 : 0);
+            const unlocked = percent >= 100;
+            const progressText = details.threshold > 0
+                ? `${Math.min(details.currentValue, details.threshold)} / ${details.threshold}`
+                : (unlocked ? 'Completado' : '0 / --');
+            const card = document.createElement('div');
+            card.className = `achievement-card ${unlocked ? 'unlocked' : ''}`;
+            card.innerHTML = `
+                <div class="achievement-meta">
+                    <span class="badge-level">Nivel ${ach.level}</span>
+                    <span class="achievement-topic">${ach.topic || details.criteria}</span>
+                </div>
+                <h3>${ach.name}</h3>
+                <p class="achievement-desc">${details.description}</p>
+                <div class="progress-track">
+                    <div class="progress-bar ${unlocked ? 'completed' : ''}" style="width:${percent}%;"></div>
+                </div>
+                <div class="progress-meta">
+                    <span>${progressText}</span>
+                    <span class="status-pill ${unlocked ? 'ok' : 'pending'}">${unlocked ? 'Desbloqueado' : 'En progreso'}</span>
+                </div>
+            `;
+            container.appendChild(card);
         });
     } catch (err) {
         showMessage(err.message, 'error');
@@ -852,6 +851,57 @@ function setText(id, text = '') {
     const el = document.getElementById(id);
     if (el) el.textContent = text ?? '';
 }
+
+function buildAchievementSnapshot(profile) {
+    return {
+        GAMIFICATION: profile?.gamificationPoints ?? 0,
+        BEERS_CREATED: profile?.beersCreatedCount ?? 0,
+        TASTINGS: profile?.tastingsCount ?? 0,
+        RATINGS: profile?.ratingsCount ?? 0
+    };
+}
+
+function describeAchievement(achievement, snapshot) {
+    const threshold = achievement.threshold ?? 0;
+    const criteria = (achievement.criteria || 'GAMIFICATION').toUpperCase();
+    const messages = {
+        GAMIFICATION: {
+            verb: 'Suma',
+            noun: 'puntos de gamificación',
+            current: snapshot.GAMIFICATION ?? 0
+        },
+        BEERS_CREATED: {
+            verb: 'Publica',
+            noun: 'cervezas nuevas',
+            current: snapshot.BEERS_CREATED ?? 0
+        },
+        TASTINGS: {
+            verb: 'Realiza',
+            noun: 'degustaciones',
+            current: snapshot.TASTINGS ?? 0
+        },
+        RATINGS: {
+            verb: 'Valora',
+            noun: 'cervezas',
+            current: snapshot.RATINGS ?? 0
+        }
+    };
+    const data = messages[criteria] || {
+        verb: 'Completa',
+        noun: `el hito ${criteria.toLowerCase()}`,
+        current: snapshot.GAMIFICATION ?? 0
+    };
+    const description = threshold > 0
+            ? `${data.verb} ${threshold} ${data.noun}.`
+            : `Consigue este galardón especial participando en la comunidad.`;
+    return {
+        description,
+        currentValue: data.current ?? 0,
+        threshold,
+        criteria
+    };
+}
+
 const tastingBeerInput = document.getElementById('tastingBeerInput');
 const tastingBeerDropdown = document.getElementById('tastingBeerDropdown');
 const tastingBeerIdInput = document.getElementById('tastingBeerId');

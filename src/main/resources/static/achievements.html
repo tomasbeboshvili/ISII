@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>BeerSP - Menú y Galardones</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
 <header>
@@ -27,7 +27,7 @@
 
 <main>
     <section class="grid two-columns">
-        <div class="white-panel profile-card">
+        <div id="menuCard" class="white-panel profile-card">
             <div class="menu-toolbar">
                 <h2>Menú contextual</h2>
                 <button id="refreshMenuBtn">Actualizar</button>
@@ -43,7 +43,7 @@
             <div class="toolbar-actions">
                 <button id="openClaimAchievementBtn">Reclamar galardón</button>
             </div>
-            <ul id="achievementList" class="list"></ul>
+            <div id="achievementList" class="achievement-grid"></div>
         </div>
     </section>
 </main>
@@ -71,6 +71,6 @@
     <div id="messages"></div>
 </footer>
 
-<script src="app.js"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>

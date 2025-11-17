@@ -1,6 +1,5 @@
 package es.upm.cervezas.service;
 
-import es.upm.cervezas.api.dto.ActivationRequest;
 import es.upm.cervezas.api.dto.ActivationResponse;
 import es.upm.cervezas.api.dto.LoginRequest;
 import es.upm.cervezas.api.dto.LoginResponse;
@@ -24,9 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Servicio encargado de gestionar el ciclo de vida de los usuarios: registro, activación,
- * login/logout y recuperación de credenciales. Encapsula todas las reglas de negocio
- * relacionadas con la autenticación.
+ * Servicio encargado de gestionar el ciclo de vida de los usuarios: registro (con activación
+ * automática), login/logout y recuperación de credenciales. Encapsula todas las reglas de
+ * negocio relacionadas con la autenticación.
  */
 @Service
 public class AuthService {
@@ -54,8 +53,9 @@ public class AuthService {
     }
 
     /**
-     * Registra un nuevo usuario (comprobando edad y unicidad de email/username) y le envía un
-     * código de activación simulado al correo. Queda marcado como pendiente de activación.
+     * Registra un nuevo usuario (comprobando edad y unicidad de email/username) y lo deja listo
+     * para iniciar sesión inmediatamente. Se envía un correo simulado de bienvenida sin necesidad
+     * de validar ningún token.
      */
     @Transactional
     public RegistrationResponse register(RegistrationRequest request) {
@@ -78,43 +78,35 @@ public class AuthService {
         user.setPhotoUrl(request.photoUrl());
         user.setOrigin(request.origin());
         user.setIntro(request.intro());
-        user.setLocation(request.location());
-        user.setGender(request.gender());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setBirthDate(request.birthDate());
         user.setBirthday(request.birthday() != null ? request.birthday() : request.birthDate());
         user.setCity(request.city());
         user.setCountry(request.country());
         user.setBio(request.bio());
-        user.setActivated(false);
-        user.setActivationToken(UUID.randomUUID().toString());
-        user.setActivationTokenCreatedAt(Instant.now());
-
-        userRepository.save(user);
-        log.debug("Usuario {} registrado pendiente de activación", user.getId());
-        emailService.send(user.getEmail(), "Activa tu cuenta BeerSP",
-                "Tu código de activación es: " + user.getActivationToken());
-
-        return new RegistrationResponse(
-                "Registro exitoso. Revisa el correo simulado con tu código.",
-                user.getActivationToken()
-        );
-    }
-
-    /**
-     * Activa un usuario a partir del token recibido por correo.
-     */
-    @Transactional
-    public ActivationResponse activate(ActivationRequest request) {
-        User user = userRepository.findByActivationToken(request.token())
-                .orElseThrow(() -> new IllegalArgumentException("Token de activación inválido"));
-
         user.setActivated(true);
         user.setActivationToken(null);
         user.setActivationTokenCreatedAt(null);
 
-        log.info("Usuario {} activado correctamente", user.getId());
-        return new ActivationResponse("Cuenta activada correctamente");
+        userRepository.save(user);
+        log.debug("Usuario {} registrado y activado automáticamente", user.getId());
+        emailService.send(user.getEmail(), "Bienvenido a BeerSP",
+                "Tu cuenta ya está activa y puedes iniciar sesión de inmediato.");
+
+        return new RegistrationResponse(
+                "Registro exitoso. Tu cuenta está activa y lista.",
+                true
+        );
+    }
+
+    /**
+     * Endpoint de compatibilidad: se mantiene para informar de que la activación manual
+     * ya no es necesaria.
+     */
+    @Transactional
+    public ActivationResponse activate() {
+        log.info("Solicitud de activación ignorada: todas las cuentas se activan al registrarse");
+        return new ActivationResponse("La activación manual ya no es necesaria.");
     }
 
     /**
@@ -126,7 +118,7 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
 
         if (!user.isActivated()) {
-            throw new IllegalStateException("Debes activar la cuenta antes de iniciar sesión");
+            throw new IllegalStateException("Debes contactar con soporte: la cuenta no figura activa");
         }
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
