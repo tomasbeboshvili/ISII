@@ -47,17 +47,8 @@ public class UserProfileService {
         if (request.lastName() != null) {
             user.setLastName(request.lastName());
         }
-        if (request.photoUrl() != null) {
-            user.setPhotoUrl(request.photoUrl());
-        }
-        if (request.origin() != null) {
-            user.setOrigin(request.origin());
-        }
         if (request.intro() != null) {
             user.setIntro(request.intro());
-        }
-        if (request.birthday() != null) {
-            user.setBirthday(request.birthday());
         }
         if (request.city() != null) {
             user.setCity(request.city());
@@ -80,11 +71,8 @@ public class UserProfileService {
                 user.getDisplayName(),
                 user.getFirstName(),
                 user.getLastName(),
-                user.getPhotoUrl(),
-                user.getOrigin(),
                 user.getIntro(),
                 user.getBirthDate(),
-                user.getBirthday(),
                 user.getCity(),
                 user.getCountry(),
                 user.getBio(),

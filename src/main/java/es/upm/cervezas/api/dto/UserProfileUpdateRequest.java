@@ -8,10 +8,7 @@ public record UserProfileUpdateRequest(
         @Size(min = 2, max = 120) String displayName,
         String firstName,
         String lastName,
-        @Size(max = 500) String photoUrl,
-        String origin,
         @Size(max = 500) String intro,
-        LocalDate birthday,
         String city,
         String country,
         @Size(max = 1000) String bio

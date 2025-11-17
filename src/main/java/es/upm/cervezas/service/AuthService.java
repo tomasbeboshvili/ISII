@@ -75,12 +75,9 @@ public class AuthService {
         user.setDisplayName(request.displayName());
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
-        user.setPhotoUrl(request.photoUrl());
-        user.setOrigin(request.origin());
         user.setIntro(request.intro());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setBirthDate(request.birthDate());
-        user.setBirthday(request.birthday() != null ? request.birthday() : request.birthDate());
         user.setCity(request.city());
         user.setCountry(request.country());
         user.setBio(request.bio());

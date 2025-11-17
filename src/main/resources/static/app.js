@@ -191,10 +191,6 @@ if (profileForm) {
         e.preventDefault();
         try {
             const payload = serializeForm(e.target);
-            if (payload.birthday && !isAdult(payload.birthday)) {
-                showMessage('Debes indicar una fecha válida y mayor de edad.', 'error');
-                return;
-            }
             if (!payload.displayName || !payload.displayName.trim()) {
                 const composed = `${payload.firstName || ''} ${payload.lastName || ''}`.trim();
                 if (composed) {
@@ -741,20 +737,10 @@ function renderProfileCard(profile) {
     setText('profileLastName', profile.lastName);
     setText('profileCity', profile.city);
     setText('profileCountry', profile.country);
-    setText('profileBirthday', profile.birthday ?? '');
+    setText('profileBirthDate', profile.birthDate ?? '');
     setText('profileBio', profile.bio);
     setText('profilePoints', profile.gamificationPoints);
     setText('profileAchievement', profile.currentAchievementId ?? 'N/A');
-
-    const photo = document.getElementById('profilePhoto');
-    if (photo) {
-        if (profile.photoUrl) {
-            photo.src = profile.photoUrl;
-            photo.style.display = 'block';
-        } else {
-            photo.style.display = 'none';
-        }
-    }
 }
 
 async function loadMenu() {

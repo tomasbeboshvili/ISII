@@ -35,17 +35,11 @@ public class User {
 
     private String lastName;
 
-    private String photoUrl;
-
-    private String origin;
-
     @Column(length = 500)
     private String intro;
 
     @Column(nullable = false)
     private LocalDate birthDate;
-
-    private LocalDate birthday;
 
     private String city;
 
@@ -152,22 +146,6 @@ public class User {
         this.lastName = lastName;
     }
 
-    public String getPhotoUrl() {
-        return photoUrl;
-    }
-
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
-    }
-
-    public String getOrigin() {
-        return origin;
-    }
-
-    public void setOrigin(String origin) {
-        this.origin = origin;
-    }
-
     public String getIntro() {
         return intro;
     }
@@ -182,14 +160,6 @@ public class User {
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
-    }
-
-    public LocalDate getBirthday() {
-        return birthday;
-    }
-
-    public void setBirthday(LocalDate birthday) {
-        this.birthday = birthday;
     }
 
     public String getCity() {

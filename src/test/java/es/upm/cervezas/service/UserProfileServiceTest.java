@@ -61,12 +61,7 @@ class UserProfileServiceTest {
                 "Nuevo",
                 "NuevoNombre",
                 "Apellidos",
-                "http://foto",
-                "Origen",
                 "Intro",
-                "Madrid",
-                "M",
-                LocalDate.now().minusYears(25),
                 "Madrid",
                 "ES",
                 "Bio"
@@ -78,7 +73,7 @@ class UserProfileServiceTest {
         assertThat(response.country()).isEqualTo("ES");
         assertThat(response.bio()).isEqualTo("Bio");
         assertThat(user.getFirstName()).isEqualTo("NuevoNombre");
-        assertThat(user.getPhotoUrl()).isEqualTo("http://foto");
+        assertThat(user.getIntro()).isEqualTo("Intro");
     }
 
     private User buildUser() {

@@ -56,11 +56,8 @@ class AuthServiceTest {
                 "Nombre",
                 "Apellidos",
                 null,
-                null,
-                null,
                 "secret",
                 LocalDate.now().minusYears(20),
-                null,
                 "Madrid",
                 "España",
                 "Bio"

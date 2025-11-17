@@ -12,12 +12,9 @@ public record RegistrationRequest(
         @NotBlank String displayName,
         String firstName,
         String lastName,
-        String photoUrl,
-        String origin,
         String intro,
         @NotBlank String password,
         @NotNull @Past LocalDate birthDate,
-        LocalDate birthday,
         String city,
         String country,
         String bio
