@@ -2,17 +2,18 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>BeerSP - Autenticación</title>
+    <title>BeerSP - Restablecer Contraseña</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <header>
-    <h1>Autenticación · BeerSP</h1>
-    <p>Regístrate, inicia sesión y gestiona la recuperación de contraseña.</p>
+    <h1>Restablecer Contraseña</h1>
+    <p>Introduce el código recibido y tu nueva contraseña.</p>
 </header>
 
 <nav class="nav-links">
     <a href="index.html">Inicio</a>
+    <a href="auth.html">Autenticación</a>
     <a href="profile.html">Perfil</a>
     <a href="beers.html">Cervezas</a>
     <a href="tastings.html">Degustaciones</a>
@@ -30,19 +31,19 @@
 
 <main>
     <section class="auth-layout">
-        <form id="loginForm">
-            <h2>Iniciar sesión</h2>
-            <label>Email <input type="email" name="email" required></label>
-            <label>Contraseña <input type="password" name="password" required></label>
-            <button type="submit">Entrar</button>
-            
-            <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
-                <a href="recover.html" class="link-btn" style="font-size: 0.9rem;">¿Olvidaste tu contraseña?</a>
-            </div>
+        <form id="resetForm">
+            <h2>Nueva Contraseña</h2>
+            <label>Código de recuperación
+                <input type="text" name="token" required>
+            </label>
+            <label>Nueva contraseña
+                <input type="password" name="newPassword" required>
+            </label>
+            <button type="submit">Actualizar contraseña</button>
         </form>
 
         <div class="text-center mt-4">
-            <p>¿No tienes cuenta? <a href="register.html" class="link-btn">Crear una cuenta</a></p>
+            <a href="auth.html" class="link-btn">Volver a Iniciar Sesión</a>
         </div>
     </section>
 </main>

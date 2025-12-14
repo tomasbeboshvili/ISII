@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>BeerSP - Estadísticas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+    <h1>Estadísticas Personales</h1>
+    <p>Analiza tu actividad y tus preferencias cerveceras.</p>
+</header>
+
+<nav class="nav-links">
+    <a href="index.html">Inicio</a>
+    <a href="auth.html">Autenticación</a>
+    <a href="profile.html">Perfil</a>
+    <a href="beers.html">Cervezas</a>
+    <a href="tastings.html">Degustaciones</a>
+    <a href="achievements.html">Menú & Galardones</a>
+    <a href="friends.html">Amigos</a>
+    <a href="feed.html">Actividad</a>
+    <a href="statistics.html">Estadísticas</a>
+    <a href="statistics.html">Estadísticas</a>
+</nav>
+
+<div class="token-box">
+    <strong>Estado:</strong>
+    <span id="sessionStatus">Sin sesión</span>
+    <button type="button" id="logoutBtn">Cerrar sesión</button>
+</div>
+
+<main>
+    <section>
+        <h2>Resumen de Actividad</h2>
+        <div class="grid two-columns">
+            <div class="card text-center">
+                <h3>Cervezas Valoradas</h3>
+                <p class="stat-value" id="totalBeersRated">-</p>
+                <p class="muted">Total de cervezas que has puntuado</p>
+            </div>
+            <div class="card text-center">
+                <h3>Degustaciones</h3>
+                <p class="stat-value" id="totalTastings">-</p>
+                <p class="muted">Total de catas registradas</p>
+            </div>
+            <div class="card text-center">
+                <h3>Nota Media (Cervezas)</h3>
+                <p class="stat-value" id="averageBeerRating">-</p>
+                <p class="muted">Promedio de tus valoraciones (1-10)</p>
+            </div>
+            <div class="card text-center">
+                <h3>Nota Media (Degustaciones)</h3>
+                <p class="stat-value" id="averageTastingRating">-</p>
+                <p class="muted">Promedio global (Aroma, Sabor, Apariencia)</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p>BeerSP · Ciclo 1</p>
+    <div id="messages"></div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        checkAuth();
+        loadStatistics();
+    });
+</script>
+</body>
+</html>

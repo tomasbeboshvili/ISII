@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Amigos - BeerSP</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+<header>
+    <h1>Gestión de Amigos</h1>
+    <p>Busca usuarios, gestiona solicitudes y consulta tu lista de amigos.</p>
+</header>
+
+<nav class="nav-links">
+    <a href="index.html">Inicio</a>
+    <a href="auth.html">Autenticación</a>
+    <a href="profile.html">Perfil</a>
+    <a href="beers.html">Cervezas</a>
+    <a href="tastings.html">Degustaciones</a>
+    <a href="achievements.html">Menú & Galardones</a>
+    <a href="friends.html">Amigos</a>
+    <a href="feed.html">Actividad</a>
+    <a href="statistics.html">Estadísticas</a>
+</nav>
+
+<div class="token-box">
+    <strong>Estado:</strong>
+    <span id="sessionStatus">Sin sesión</span>
+    <button type="button" id="logoutBtn">Cerrar sesión</button>
+</div>
+
+    <main class="container">
+      <h2>Gestión de Amigos</h2>
+
+      <section id="friend-search">
+        <h3>Buscar Usuarios</h3>
+        <div class="search-bar">
+          <input
+            type="text"
+            id="user-search-input"
+            placeholder="Nombre o usuario..."
+          />
+          <button onclick="searchUsers()">Buscar</button>
+        </div>
+        <div id="search-results" class="grid-list"></div>
+      </section>
+
+      <section id="pending-requests">
+        <h3>Solicitudes Pendientes</h3>
+        <div id="requests-list" class="grid-list"></div>
+      </section>
+
+      <section id="friends-list-section">
+        <h3>Mis Amigos</h3>
+        <div id="friends-list" class="grid-list"></div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        checkAuth();
+        loadFriendsData();
+      });
+    </script>
+  </body>
+</html>

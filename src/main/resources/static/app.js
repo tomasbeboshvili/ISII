@@ -102,6 +102,7 @@ if (logoutBtn) {
 }
 
 // Registro
+// Registro
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
@@ -121,8 +122,11 @@ if (registerForm) {
                 method: 'POST',
                 body: JSON.stringify(payload)
             });
-            showMessage('Registro correcto. Ya puedes iniciar sesión.');
+            showMessage('Registro correcto. Redirigiendo a inicio de sesión...');
             e.target.reset();
+            setTimeout(() => {
+                window.location.href = 'auth.html';
+            }, 2000);
         } catch (err) {
             showMessage(err.message, 'error');
         }
@@ -149,9 +153,11 @@ if (loginForm) {
 }
 
 // Recuperación
-const recoverBtn = document.getElementById('recoverBtn');
-if (recoverBtn) {
-    recoverBtn.addEventListener('click', async () => {
+// Recuperación
+const recoverForm = document.getElementById('recoverForm');
+if (recoverForm) {
+    recoverForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         const email = document.getElementById('recoverEmail')?.value.trim();
         if (!email) return;
         try {
@@ -160,6 +166,12 @@ if (recoverBtn) {
                 body: JSON.stringify({email})
             });
             showMessage(data.message + (data.resetToken ? ` Token: ${data.resetToken}` : ''));
+            // Optionally redirect to reset page if token is provided in dev mode, or just stay
+            if (data.resetToken) {
+                 setTimeout(() => {
+                    window.location.href = 'reset.html';
+                }, 3000);
+            }
         } catch (err) {
             showMessage(err.message, 'error');
         }
@@ -176,8 +188,11 @@ if (resetForm) {
                 method: 'POST',
                 body: JSON.stringify(payload)
             });
-            showMessage('Contraseña actualizada.');
+            showMessage('Contraseña actualizada. Redirigiendo a inicio de sesión...');
             resetForm.reset();
+            setTimeout(() => {
+                window.location.href = 'auth.html';
+            }, 2000);
         } catch (err) {
             showMessage(err.message, 'error');
         }
@@ -888,3 +903,234 @@ const filterBeerIdInput = document.getElementById('filterBeerId');
 if (filterBeerInput && filterBeerDropdown && filterBeerIdInput) {
     filterBeerInput.addEventListener('input', () => renderBeerDropdown(filterBeerInput, filterBeerDropdown, filterBeerIdInput));
 }
+
+// --- Friends & Feed Logic ---
+
+function checkAuth() {
+    if (!state.token) {
+        window.location.href = 'auth.html';
+    }
+    buildNav();
+}
+
+function buildNav() {
+    const nav = document.getElementById('main-nav');
+    if (!nav) return;
+    nav.innerHTML = `
+        <a href="index.html">Inicio</a>
+        <a href="beers.html">Cervezas</a>
+        <a href="tastings.html">Degustaciones</a>
+        <a href="achievements.html">Logros</a>
+        <a href="friends.html">Amigos</a>
+        <a href="feed.html">Actividad</a>
+        <a href="statistics.html">Estadísticas</a>
+        <a href="profile.html">Mi Perfil</a>
+        <button id="logoutBtnNav" style="margin-left: auto;">Cerrar Sesión</button>
+    `;
+    document.getElementById('logoutBtnNav').addEventListener('click', () => {
+        setToken(null);
+        window.location.href = 'index.html';
+    });
+}
+
+async function searchUsers() {
+    const input = document.getElementById('user-search-input');
+    const resultsDiv = document.getElementById('search-results');
+    if (!input || !resultsDiv) return;
+    
+    const query = input.value.trim();
+    if (!query) return;
+
+    try {
+        const [users, friends] = await Promise.all([
+            apiRequest(`/friends/search?q=${encodeURIComponent(query)}`),
+            apiRequest('/friends')
+        ]);
+        
+        const friendIds = new Set(friends.map(f => f.id));
+
+        resultsDiv.innerHTML = '';
+        if (users.length === 0) {
+            resultsDiv.innerHTML = '<p>No se encontraron usuarios.</p>';
+            return;
+        }
+        
+        users.forEach(user => {
+            const isFriend = friendIds.has(user.id);
+            const div = document.createElement('div');
+            div.className = 'card';
+            
+            let actionBtn = `<button onclick="sendRequest(${user.id})">Enviar Solicitud</button>`;
+            if (isFriend) {
+                actionBtn = `<button class="success" disabled>Amigo</button>`;
+            }
+
+            div.innerHTML = `
+                <h4>${user.displayName} (@${user.username})</h4>
+                ${actionBtn}
+            `;
+            resultsDiv.appendChild(div);
+        });
+    } catch (err) {
+        showMessage(err.message, 'error');
+    }
+}
+
+async function sendRequest(userId) {
+    try {
+        await apiRequest(`/friends/request/${userId}`, { method: 'POST' });
+        showMessage('Solicitud enviada.');
+        loadFriendsData();
+    } catch (err) {
+        showMessage(err.message, 'error');
+    }
+}
+
+async function loadFriendsData() {
+    const pendingDiv = document.getElementById('requests-list');
+    const friendsDiv = document.getElementById('friends-list');
+    if (!pendingDiv || !friendsDiv) return;
+
+    try {
+        // Pending
+        const pending = await apiRequest('/friends/pending');
+        pendingDiv.innerHTML = '';
+        if (pending.length === 0) {
+            pendingDiv.innerHTML = '<p>No tienes solicitudes pendientes.</p>';
+        } else {
+            pending.forEach(req => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <h4>Solicitud de @${req.requester.username}</h4>
+                    <div class="actions">
+                        <button onclick="resolveRequest(${req.id}, true)">Aceptar</button>
+                        <button class="danger" onclick="resolveRequest(${req.id}, false)">Rechazar</button>
+                    </div>
+                `;
+                pendingDiv.appendChild(div);
+            });
+        }
+
+        // Friends
+        const friends = await apiRequest('/friends');
+        friendsDiv.innerHTML = '';
+        if (friends.length === 0) {
+            friendsDiv.innerHTML = '<p>Aún no tienes amigos.</p>';
+        } else {
+            friends.forEach(friend => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <h4>${friend.displayName} (@${friend.username})</h4>
+                    <button class="danger" onclick="removeFriend(${friend.id})">Eliminar</button>
+                `;
+                friendsDiv.appendChild(div);
+            });
+        }
+    } catch (err) {
+        showMessage(err.message, 'error');
+    }
+}
+
+async function resolveRequest(requestId, accept) {
+    try {
+        await apiRequest(`/friends/request/${requestId}/resolve`, {
+            method: 'POST',
+            body: JSON.stringify({ accept })
+        });
+        showMessage(accept ? 'Solicitud aceptada.' : 'Solicitud rechazada.');
+        loadFriendsData();
+    } catch (err) {
+        showMessage(err.message, 'error');
+    }
+}
+
+async function removeFriend(friendId) {
+    if (!confirm('¿Seguro que quieres eliminar a este amigo?')) return;
+    try {
+        await apiRequest(`/friends/${friendId}`, { method: 'DELETE' });
+        showMessage('Amigo eliminado.');
+        loadFriendsData();
+    } catch (err) {
+        showMessage(err.message, 'error');
+    }
+}
+
+async function loadActivityFeed() {
+    const feedDiv = document.getElementById('feed-list');
+    if (!feedDiv) return;
+
+    try {
+        const items = await apiRequest('/activity/feed');
+        feedDiv.innerHTML = '';
+        if (items.length === 0) {
+            feedDiv.innerHTML = '<p>No hay actividad reciente de tus amigos.</p>';
+            return;
+        }
+
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'feed-item card';
+            const date = new Date(item.timestamp).toLocaleString();
+            
+            let content = '';
+            if (item.type === 'TASTING') {
+                const t = item.details;
+                content = `
+                    <p><strong>@${item.username}</strong> degustó <strong>${item.beerName}</strong></p>
+                    <p>Puntuación: A:${t.aromaScore} / S:${t.flavorScore} / Ap:${t.appearanceScore}</p>
+                    ${t.notes ? `<p><em>"${t.notes}"</em></p>` : ''}
+                `;
+            } else if (item.type === 'RATING') {
+                const r = item.details;
+                content = `
+                    <p><strong>@${item.username}</strong> valoró <strong>${item.beerName}</strong></p>
+                    <p>Nota: <strong>${r.score}/10</strong></p>
+                    ${r.comment ? `<p><em>"${r.comment}"</em></p>` : ''}
+                `;
+            }
+
+            div.innerHTML = `
+                <div class="feed-header">
+                    <span class="date">${date}</span>
+                </div>
+                <div class="feed-content">
+                    ${content}
+                </div>
+            `;
+            feedDiv.appendChild(div);
+        });
+    } catch (err) {
+        showMessage(err.message, 'error');
+    }
+}
+
+async function loadStatistics() {
+    const totalBeersRated = document.getElementById('totalBeersRated');
+    if (!totalBeersRated) return;
+
+    try {
+        const stats = await apiRequest('/statistics/me');
+        
+        setText('totalBeersRated', stats.totalBeersRated);
+        setText('totalTastings', stats.totalTastings);
+        setText('averageBeerRating', stats.averageBeerRating);
+        setText('averageTastingRating', stats.averageTastingRating);
+
+    } catch (err) {
+        showMessage(err.message, 'error');
+    }
+}
+
+function highlightActiveNav() {
+    const currentPath = window.location.pathname;
+    const navLinks = document.querySelectorAll('.nav-links a');
+    navLinks.forEach(link => {
+        if (link.getAttribute('href') === currentPath.substring(1) || (currentPath === '/' && link.getAttribute('href') === 'index.html')) {
+            link.classList.add('active');
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', highlightActiveNav);

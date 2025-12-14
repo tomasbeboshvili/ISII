@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Actividad - BeerSP</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+    <h1>Actividad de Amigos</h1>
+    <p>Descubre qué están bebiendo y valorando tus amigos.</p>
+</header>
+
+<nav class="nav-links">
+    <a href="index.html">Inicio</a>
+    <a href="auth.html">Autenticación</a>
+    <a href="profile.html">Perfil</a>
+    <a href="beers.html">Cervezas</a>
+    <a href="tastings.html">Degustaciones</a>
+    <a href="achievements.html">Menú & Galardones</a>
+    <a href="friends.html">Amigos</a>
+    <a href="feed.html">Actividad</a>
+    <a href="statistics.html">Estadísticas</a>
+</nav>
+
+<div class="token-box">
+    <strong>Estado:</strong>
+    <span id="sessionStatus">Sin sesión</span>
+    <button type="button" id="logoutBtn">Cerrar sesión</button>
+</div>
+
+<main class="container">
+    <h2>Actividad de Amigos</h2>
+    <div id="feed-list" class="feed-container">
+        <p>Cargando actividad...</p>
+    </div>
+</main>
+
+<script src="app.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        checkAuth();
+        loadActivityFeed();
+    });
+</script>
+</body>
+</html>

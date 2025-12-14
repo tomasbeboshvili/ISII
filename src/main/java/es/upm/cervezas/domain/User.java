@@ -15,295 +15,310 @@ import java.time.LocalDate;
 @Table(name = "users")
 public class User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+	@Column(nullable = false, unique = true)
+	private String email;
 
-    @Column(nullable = false, unique = true)
-    private String username;
+	@Column(nullable = false, unique = true)
+	private String username;
 
-    @Column(nullable = false)
-    private String passwordHash;
+	@Column(nullable = false)
+	private String passwordHash;
 
-    @Column(nullable = false)
-    private String displayName;
+	@Column(nullable = false)
+	private String displayName;
 
-    private String firstName;
+	private String firstName;
 
-    private String lastName;
+	private String lastName;
 
-    @Column(length = 500)
-    private String intro;
+	@Column(length = 500)
+	private String intro;
 
-    private String photoUrl;
+	private String photoUrl;
 
-    private String origin;
+	private String origin;
 
-    private String location;
+	private String location;
 
-    @Column(length = 30)
-    private String gender;
+	@Column(length = 30)
+	private String gender;
 
-    @Column(nullable = false)
-    private LocalDate birthDate;
+	@Column(nullable = false)
+	private LocalDate birthDate;
 
-    private String city;
+	private String city;
 
-    private String country;
+	private String country;
 
-    @Column(length = 1000)
-    private String bio;
+	@Column(length = 1000)
+	private String bio;
 
-    private boolean activated;
+	private boolean activated;
 
-    private Instant createdAt;
+	private Instant createdAt;
 
-    private Instant updatedAt;
+	private Instant updatedAt;
 
-    private String passwordResetToken;
+	private String passwordResetToken;
 
-    private Instant passwordResetExpiresAt;
+	private Instant passwordResetExpiresAt;
 
-    private Integer badgeLevel = 0;
+	private Integer badgeLevel = 0;
 
-    private int gamificationPoints;
+	private int gamificationPoints;
 
-    private Long currentAchievementId;
-    private int beersCreatedCount = 0;
-    private int tastingsCount = 0;
-    private int ratingsCount = 0;
+	private Long currentAchievementId;
+	private int beersCreatedCount = 0;
+	private int tastingsCount = 0;
+	private int ratingsCount = 0;
 
-    @PrePersist
-    public void onCreate() {
-        Instant now = Instant.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-        if (this.badgeLevel == null) {
-            this.badgeLevel = 0;
-        }
-    }
+	@PrePersist
+	public void onCreate() {
+		Instant now = Instant.now();
+		this.createdAt = now;
+		this.updatedAt = now;
+		if (this.badgeLevel == null) {
+			this.badgeLevel = 0;
+		}
+	}
 
-    @PreUpdate
-    public void onUpdate() {
-        this.updatedAt = Instant.now();
-    }
+	@PreUpdate
+	public void onUpdate() {
+		this.updatedAt = Instant.now();
+	}
 
-    public Long getId() {
-        return id;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public String getEmail() {
-        return email;
-    }
+	public String getEmail() {
+		return email;
+	}
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+	public void setEmail(String email) {
+		this.email = email;
+	}
 
-    public String getUsername() {
-        return username;
-    }
+	public String getUsername() {
+		return username;
+	}
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+	public void setUsername(String username) {
+		this.username = username;
+	}
 
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getIntro() {
-        return intro;
-    }
-
-    public void setIntro(String intro) {
-        this.intro = intro;
-    }
-
-    public String getPhotoUrl() {
-        return photoUrl;
-    }
-
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
-    }
-
-    public String getOrigin() {
-        return origin;
-    }
-
-    public void setOrigin(String origin) {
-        this.origin = origin;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public String getBio() {
-        return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
-
-    public boolean isActivated() {
-        return activated;
-    }
-
-    public void setActivated(boolean activated) {
-        this.activated = activated;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getPasswordResetToken() {
-        return passwordResetToken;
-    }
-
-    public void setPasswordResetToken(String passwordResetToken) {
-        this.passwordResetToken = passwordResetToken;
-    }
-
-    public Instant getPasswordResetExpiresAt() {
-        return passwordResetExpiresAt;
-    }
-
-    public void setPasswordResetExpiresAt(Instant passwordResetExpiresAt) {
-        this.passwordResetExpiresAt = passwordResetExpiresAt;
-    }
-
-    public Integer getBadgeLevel() {
-        return badgeLevel;
-    }
-
-    public void setBadgeLevel(Integer badgeLevel) {
-        this.badgeLevel = badgeLevel;
-    }
-
-    public int getGamificationPoints() {
-        return gamificationPoints;
-    }
-
-    public void setGamificationPoints(int gamificationPoints) {
-        this.gamificationPoints = gamificationPoints;
-    }
-
-    public Long getCurrentAchievementId() {
-        return currentAchievementId;
-    }
-
-    public void setCurrentAchievementId(Long currentAchievementId) {
-        this.currentAchievementId = currentAchievementId;
-    }
-
-    public int getBeersCreatedCount() {
-        return beersCreatedCount;
-    }
-
-    public void setBeersCreatedCount(int beersCreatedCount) {
-        this.beersCreatedCount = beersCreatedCount;
-    }
-
-    public int getTastingsCount() {
-        return tastingsCount;
-    }
-
-    public void setTastingsCount(int tastingsCount) {
-        this.tastingsCount = tastingsCount;
-    }
-
-    public int getRatingsCount() {
-        return ratingsCount;
-    }
-
-    public void setRatingsCount(int ratingsCount) {
-        this.ratingsCount = ratingsCount;
-    }
+	public String getPasswordHash() {
+		return passwordHash;
+	}
+
+	public void setPasswordHash(String passwordHash) {
+		this.passwordHash = passwordHash;
+	}
+
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public String getIntro() {
+		return intro;
+	}
+
+	public void setIntro(String intro) {
+		this.intro = intro;
+	}
+
+	public String getPhotoUrl() {
+		return photoUrl;
+	}
+
+	public void setPhotoUrl(String photoUrl) {
+		this.photoUrl = photoUrl;
+	}
+
+	public String getOrigin() {
+		return origin;
+	}
+
+	public void setOrigin(String origin) {
+		this.origin = origin;
+	}
+
+	public String getLocation() {
+		return location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
+	}
+
+	public String getGender() {
+		return gender;
+	}
+
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+
+	public LocalDate getBirthDate() {
+		return birthDate;
+	}
+
+	public void setBirthDate(LocalDate birthDate) {
+		this.birthDate = birthDate;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+	public String getBio() {
+		return bio;
+	}
+
+	public void setBio(String bio) {
+		this.bio = bio;
+	}
+
+	public boolean isActivated() {
+		return activated;
+	}
+
+	public void setActivated(boolean activated) {
+		this.activated = activated;
+	}
+
+	public Instant getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Instant getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Instant updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+	public String getPasswordResetToken() {
+		return passwordResetToken;
+	}
+
+	public void setPasswordResetToken(String passwordResetToken) {
+		this.passwordResetToken = passwordResetToken;
+	}
+
+	public Instant getPasswordResetExpiresAt() {
+		return passwordResetExpiresAt;
+	}
+
+	public void setPasswordResetExpiresAt(Instant passwordResetExpiresAt) {
+		this.passwordResetExpiresAt = passwordResetExpiresAt;
+	}
+
+	public Integer getBadgeLevel() {
+		return badgeLevel;
+	}
+
+	public void setBadgeLevel(Integer badgeLevel) {
+		this.badgeLevel = badgeLevel;
+	}
+
+	public int getGamificationPoints() {
+		return gamificationPoints;
+	}
+
+	public void setGamificationPoints(int gamificationPoints) {
+		this.gamificationPoints = gamificationPoints;
+	}
+
+	public Long getCurrentAchievementId() {
+		return currentAchievementId;
+	}
+
+	public void setCurrentAchievementId(Long currentAchievementId) {
+		this.currentAchievementId = currentAchievementId;
+	}
+
+	public int getBeersCreatedCount() {
+		return beersCreatedCount;
+	}
+
+	public void setBeersCreatedCount(int beersCreatedCount) {
+		this.beersCreatedCount = beersCreatedCount;
+	}
+
+	public int getTastingsCount() {
+		return tastingsCount;
+	}
+
+	public void setTastingsCount(int tastingsCount) {
+		this.tastingsCount = tastingsCount;
+	}
+
+	public int getRatingsCount() {
+		return ratingsCount;
+	}
+
+	public void setRatingsCount(int ratingsCount) {
+		this.ratingsCount = ratingsCount;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		User user = (User) o;
+		return id != null && id.equals(user.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return getClass().hashCode();
+	}
 }
