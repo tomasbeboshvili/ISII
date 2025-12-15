@@ -256,25 +256,25 @@ button.danger {
 }
 
 button.danger:hover {
-    background: #dc2626;
-    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
+  background: #dc2626;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
 }
 
 button.success {
-    background: var(--success);
-    color: white;
+  background: var(--success);
+  color: white;
 }
 
 button.success:hover {
-    background: #059669; /* Emerald 600 */
-    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+  background: #059669; /* Emerald 600 */
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
 }
 
 button.success:disabled {
-    opacity: 0.8;
-    cursor: default;
-    transform: none;
-    box-shadow: none;
+  opacity: 0.8;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
 }
 
 button.link-btn {
@@ -326,21 +326,21 @@ button.link-btn:hover {
 }
 
 .beer-list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .beer-actions {
-    display: flex;
-    gap: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
 }
 
 .tasting-list-item {
-    display: block;
-    line-height: 1.5;
+  display: block;
+  line-height: 1.5;
 }
 
 /* --- Specific Components --- */
@@ -422,10 +422,10 @@ button.link-btn:hover {
 }
 
 .stat-value {
-    font-size: 3rem;
-    font-weight: 700;
-    color: var(--primary);
-    margin: 0.5rem 0;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0.5rem 0;
 }
 
 .progress-bar {
@@ -512,23 +512,23 @@ button.link-btn:hover {
 
 /* --- Auth Page Specific --- */
 .auth-layout {
-    max-width: 600px; /* Increased from 520px/default */
-    margin: 2rem auto;
-    text-align: center; /* Center text in the container */
+  max-width: 600px; /* Increased from 520px/default */
+  margin: 2rem auto;
+  text-align: center; /* Center text in the container */
 }
 
 .auth-layout h2 {
-    text-align: center; /* Ensure headings are centered */
-    margin-bottom: 1.5rem;
+  text-align: center; /* Ensure headings are centered */
+  margin-bottom: 1.5rem;
 }
 
 .auth-layout form {
-    text-align: left; /* Keep form inputs left-aligned for readability */
-    background: white;
-    padding: 2rem;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--border);
+  text-align: left; /* Keep form inputs left-aligned for readability */
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
 }
 
 .auth-columns {
@@ -1050,4 +1050,177 @@ button:hover {
 .status-pill.pending {
   background: #fee2e2;
   color: #b91c1c;
+}
+
+/* --- Dark Mode (GitHub Dark Style) --- */
+/* --- Dark Mode (GitHub Dark Style) --- */
+html.dark-mode {
+  --primary: #58a6ff; /* GitHub Blue */
+  --primary-hover: #79c0ff;
+  --secondary: #8b949e; /* GitHub Grey */
+  --success: #238636; /* GitHub Green */
+  --danger: #da3633; /* GitHub Red */
+  --warning: #d29922; /* GitHub Yellow */
+  --background: #0d1117; /* GitHub Dark Bg */
+  --surface: #161b22; /* GitHub Dark Surface */
+  --text-main: #c9d1d9; /* GitHub Text */
+  --text-muted: #8b949e; /* GitHub Muted */
+  --border: #30363d; /* GitHub Border */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6);
+}
+
+html.dark-mode body {
+    background-color: var(--background);
+    color: var(--text-main);
+}
+
+html.dark-mode form,
+html.dark-mode section {
+    background: var(--surface);
+    border-color: var(--border);
+}
+
+html.dark-mode .profile-card {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text-main);
+}
+
+html.dark-mode .nav-links {
+    background-color: rgba(22, 27, 34, 0.95); /* Dark surface with opacity */
+    border-bottom-color: var(--border);
+}
+
+html.dark-mode .nav-links a {
+    color: var(--text-main);
+}
+
+html.dark-mode .nav-links a:hover,
+html.dark-mode .nav-links a.active {
+    background-color: #30363d; /* Dark Gray (GitHub Border color or similar) */
+    color: var(--text-main); /* Keep text white/light */
+}
+
+html.dark-mode .card,
+html.dark-mode .achievement-card,
+html.dark-mode .feed-item {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text-main);
+}
+
+html.dark-mode input,
+html.dark-mode textarea,
+html.dark-mode select {
+  background: #0d1117; /* Darker input bg */
+  color: var(--text-main);
+  border-color: var(--border);
+}
+
+html.dark-mode input:focus,
+html.dark-mode textarea:focus,
+html.dark-mode select:focus {
+  background: #0d1117;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+}
+
+html.dark-mode .beer-toolbar,
+html.dark-mode .menu-toolbar {
+  background: #21262d; /* Slightly lighter than surface */
+  border: 1px solid var(--border);
+}
+
+html.dark-mode .achievement-card.unlocked {
+  background: linear-gradient(to bottom right, #0f2d18, #161b22);
+  border-color: #238636;
+}
+
+html.dark-mode .achievement-topic {
+    background: #21262d;
+    color: var(--text-main);
+}
+
+html.dark-mode .token-box {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text-main);
+}
+
+html.dark-mode .white-panel {
+    background: var(--surface);
+    color: var(--text-main);
+    border-color: var(--border);
+}
+
+html.dark-mode header, 
+html.dark-mode footer {
+    background: #161b22;
+    border-top-color: var(--border);
+}
+
+html.dark-mode header h1 {
+    color: var(--text-main);
+}
+
+html.dark-mode header p {
+    color: var(--text-muted);
+}
+
+.nav-links {
+  background: var(--surface);
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--text-main);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Absolute positioning to keep links centered */
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--primary);
+}
+
+html.dark-mode .theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 640px) {
+  .theme-toggle {
+    margin-left: 0;
+    width: 100%;
+  }
 }

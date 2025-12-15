@@ -1134,3 +1134,30 @@ function highlightActiveNav() {
 }
 
 document.addEventListener('DOMContentLoaded', highlightActiveNav);
+
+// --- Dark Mode Logic ---
+function initDarkMode() {
+    // Initial check is now handled by inline script in head to prevent FOUC
+    // Just handle the toggle button here
+
+    // Create toggle button
+    const nav = document.querySelector('.nav-links');
+    if (nav) {
+        const btn = document.createElement('button');
+        btn.className = 'theme-toggle';
+        // Simple SVG for Sun/Moon (Half-filled circle representation)
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>`;
+        btn.title = 'Cambiar tema';
+        btn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark-mode');
+            const isDark = document.documentElement.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+        nav.appendChild(btn);
+    }
+}
+
+// Initialize dark mode immediately to prevent flash if possible, 
+// but DOM elements like nav need to exist.
+// Since this script is at the end of body, DOM is ready.
+initDarkMode();
